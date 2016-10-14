@@ -5,16 +5,6 @@
 
 using namespace Rcpp;
 
-// rcpp_hello
-List rcpp_hello();
-RcppExport SEXP genoscapeRtools_rcpp_hello() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello());
-    return rcpp_result_gen;
-END_RCPP
-}
 // mat_cumul_cpp
 NumericMatrix mat_cumul_cpp(NumericMatrix x, int dim);
 RcppExport SEXP genoscapeRtools_mat_cumul_cpp(SEXP xSEXP, SEXP dimSEXP) {
