@@ -4,7 +4,6 @@ using namespace Rcpp;
 //' return a matrix of cumumlative sums along the rows or colums
 //' @param x a numeric matrix
 //' @param dim 1 for rows, 2 for columns
-//' @export
 // [[Rcpp::export]]
 NumericMatrix mat_cumul_cpp(NumericMatrix x, int dim) {
   int i,j;

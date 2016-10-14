@@ -1,6 +1,6 @@
 #' My package documentation
 #' … bla bla …
-#' @name gids
+#' @name genoscapeRtools
 #' @docType package
 #' @importFrom Rcpp evalCpp
 #' @useDynLib genoscapeRtools
