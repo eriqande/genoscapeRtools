@@ -46,7 +46,9 @@ miss_curves_indv <- function(x012, reorder = TRUE, loc_nums = integer(0)) {
 
   # now, prepare a ggplot of that as well
   g <- ggplot2::ggplot(smallfract_df, ggplot2::aes(x = xpos, y = fract_non_missing, colour = NumLocKeptF)) +
-    ggplot2::geom_line()
+    ggplot2::geom_line() +
+    ggplot2::xlab("Number of individuals (ordered by missingness)") +
+    ggplot2::ylab("Fraction of non-missing genotypes in the individual")
 
   list(df = smallfract_df, plot = g)
 }
@@ -99,7 +101,9 @@ miss_curves_locus <- function(x012, reorder = TRUE, locus_thin_to = 5000, indv_n
 
   # now, prepare a ggplot of that as well
   g <- ggplot2::ggplot(smallfract_df, ggplot2::aes(x = num_loci_reordered, y = fract_non_missing, colour = num_indv)) +
-    ggplot2::geom_line()
+    ggplot2::geom_line() +
+    ggplot2::xlab("Number of loci (ordered by missingness)") +
+    ggplot2::ylab("Fraction of non-missing genotypes at the locus")
 
   list(df = smallfract_df, plot = g)
 }
