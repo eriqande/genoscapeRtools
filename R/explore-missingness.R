@@ -5,12 +5,52 @@
 
 #' Order a genotype matrix by individual missingness at different locus numbers and plot results
 #'
+#' By default this just orders things and returns a data frame of missingness and a ggplot that can
+#' be printed.  If you give it either \code{clean_pos} or \code{clean_indv} (or both) then an 012 file and indv
+#' and pos files
+#' will be written to  files named like "clean_file_prefix_indvXX_posYY" where XX is clean_indv and YY is clean_pos.
+#' The order of pos and inv in that file will be the same as in the x012 input (except for the pos and indv that have
+#' been removed, of course.) WARNING: If you positions have "--" in them, you will get some wonky results.
 #' @param x012 a matrix of 012 genotypes with missing data coded as -1
 #' @param reorder Logical.  if TRUE then the order of individuals is re-done for every number of loci
 #' @param loc_nums vector of numbers of loci to investigate.  If not given, then it just does 10 equally-spaced
 #' values.
+#' @param clean_pos the number of loci to retain in a data set that has been "cleaned up".  Must be a single integer. If this is given, then
+#' a cleaned set of 012 files will be written out keeping clean_pos loci.  If clean_indv is given, but this isn't, then all positions are
+#' retained in the file output.
+#' @param clean_indv the number of individuals to retain in a data set that has been "cleaned up". Must be a single integer. If this is not given,
+#' but clean_pos is, then all the indv's will be returned.
+#' @param clean_file_prefix the prefix to add to the output file if you either of retainL or retainI is given.
 #' @export
-miss_curves_indv <- function(x012, reorder = TRUE, loc_nums = integer(0)) {
+miss_curves_indv <- function(x012, reorder = TRUE, loc_nums = integer(0), clean_pos = integer(0), clean_indv = integer(0), clean_file_prefix = "cleaned") {
+
+  # default
+  do_clean <- FALSE
+  retain_indv_df <- NULL
+
+  # deal with numbers of individuals and whether we will retain and clean some
+  stopifnot(length(clean_indv) <= 1)
+  stopifnot(length(clean_pos) <= 1)
+
+  if(length(loc_nums) == 0) {
+    loc_nums = floor(seq(1, ncol(x012), length.out = 11)[-1])
+  }
+  if(length(clean_indv) == 1) {
+    do_clean <- TRUE
+  }
+  if(length(clean_pos) == 1) {
+    do_clean <- TRUE
+    loc_nums <- unique(sort(c(clean_pos, loc_nums)))  # add the clean_pos to the loc_nums
+  }
+  if(do_clean == TRUE) {
+    if(length(clean_pos) == 0) {
+      clean_pos <- ncol(x012)
+    }
+    if(length(clean_indv) == 0) {
+      clean_indv <- nrow(x012)
+    }
+  }
+
   xmiss <- x012 == -1
 
   # compute the cumulative num of missing values
@@ -19,9 +59,6 @@ miss_curves_indv <- function(x012, reorder = TRUE, loc_nums = integer(0)) {
   xmiss_ord <- xmiss[order(imiss), order(locmiss)]
   cumul_miss <- mat_cumul_R(xmiss_ord, 1)   # This calls RCPP to avoid a slow ==> t(apply(xmiss_ord, 1, cumsum))
 
-  if(length(loc_nums) == 0) {
-    loc_nums = floor(seq(1, ncol(x012), length.out = 11)[-1])
-  }
 
   # select those loci and then make a data frame of it
   small <- cumul_miss[, loc_nums]
@@ -37,11 +74,36 @@ miss_curves_indv <- function(x012, reorder = TRUE, loc_nums = integer(0)) {
 
 
   # now, if we are to reorder it, we can just modify the xpos column grouped by NumLociKept
-  if(reorder == TRUE) {
+  if(reorder == TRUE || do_clean == TRUE) {
     smallfract_df <- smallfract_df %>%
       dplyr::group_by(NumLociKept) %>%
       dplyr::arrange(dplyr::desc(fract_non_missing)) %>%
       dplyr::mutate(xpos = 1:n())
+  }
+
+  # now, if we are writing out and returning a cleaned set, let's do that
+  if(do_clean == TRUE) {
+    fprefix <- paste(clean_file_prefix, "_indv", clean_indv, "_pos", clean_pos, ".012", sep = "")
+
+    message("Picking out clean_pos and clean_indv and writing them to ", fprefix)
+    retain_indv_df <- smallfract_df %>%
+      dplyr::ungroup() %>%
+      dplyr::filter(NumLociKept == clean_pos, xpos <= clean_indv)
+    retain_indv <- retain_indv_df %>% dplyr::select(indv) %>% unlist() %>% unname()
+
+    # now, get the positions to keep:
+    retain_pos <- colnames(xmiss_ord)[1:clean_pos]
+
+    # now we pick those out in the original order
+    clean_mat <- x012[rownames(x012) %in% retain_indv, colnames(x012) %in% retain_pos]
+
+    cat(rownames(clean_mat), sep = "\n", file = paste(fprefix, ".indv", sep = ""))
+    posnames <- colnames(clean_mat)  # get position names.  Then turn "--" into a \t
+
+    cat(stringr::str_replace(posnames, pattern = "--", "\t"), sep = "\n", file = paste(fprefix, ".pos", sep = ""))
+    rownames(clean_mat) <- 0:(nrow(clean_mat) - 1)
+    write.table(clean_mat, file = fprefix, quote = FALSE, sep = "\t", row.names = TRUE, col.names = FALSE)
+
   }
 
   # now, prepare a ggplot of that as well

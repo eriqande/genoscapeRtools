@@ -15,6 +15,7 @@ Imports:
     ggplot2,
     magrittr,
     tibble,
-    Rcpp (>= 0.12.7)
+    Rcpp (>= 0.12.7),
+    stringr
 LinkingTo: Rcpp
 RoxygenNote: 5.0.1
