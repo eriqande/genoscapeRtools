@@ -12,6 +12,7 @@ read_012(prefix)
 }
 \value{
 Returns a matrix with n-indiv rows and n-loci columns.  The rownames are the indv names and the
+colnames are the pos's.
 }
 \description{
 Uses data.table::fread for speed. Note that the individual names should be unique! So should the

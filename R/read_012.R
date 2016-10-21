@@ -8,7 +8,7 @@
 #' @param prefix  the (path) prefix on the files to be read.  The files will be \code{prefix.012},
 #' \code{prefix.012.indv}, and \code{prefix.012.pos}
 #' @return Returns a matrix with n-indiv rows and n-loci columns.  The rownames are the indv names and the
-#'
+#' colnames are the pos's.
 #' @export
 read_012 <- function(prefix) {
   file <- paste0(prefix, ".012")
