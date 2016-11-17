@@ -21,11 +21,8 @@
 #' @param clean_indv the number of individuals to retain in a data set that has been "cleaned up". Must be a single integer. If this is not given,
 #' but clean_pos is, then all the indv's will be returned.
 #' @param clean_file_prefix the prefix to add to the output file if you either of retainL or retainI is given.
-#' @param indv_specific_clean_pos Flag that I will probably eventually toss. I just have it in there for illustration.  If this is TRUE, when you are choosing
-#' clean_pos markers, it will find the best ones for the given clean_indv you are retaining.  If FALSE, then it just takes the loci as ordered by missingness
-#' amongst all individauls, which can lead to some loci having more missing data than you want!
 #' @export
-miss_curves_indv <- function(x012, reorder = TRUE, loc_nums = integer(0), clean_pos = integer(0), clean_indv = integer(0), clean_file_prefix = "cleaned", indv_specific_clean_pos = TRUE) {
+miss_curves_indv <- function(x012, reorder = TRUE, loc_nums = integer(0), clean_pos = integer(0), clean_indv = integer(0), clean_file_prefix = "cleaned") {
 
   # default
   do_clean <- FALSE
@@ -96,12 +93,8 @@ miss_curves_indv <- function(x012, reorder = TRUE, loc_nums = integer(0), clean_
 
     # now, get the positions to keep.  For this, we will use the best loci given only the retained
     # individuals
-    if(indv_specific_clean_pos == TRUE) {
-      nMiss <- sort(colSums(xmiss[retain_indv, ]))
-      retain_pos <- names(nMiss)[1:clean_pos]
-    } else {
-      retain_pos <- colnames(xmiss_ord)[1:clean_pos]   # this is the lazy way I used to do it, which meant there were some sites that might have more missing data amongst the retained individauls than desired/expected
-    }
+    nMiss <- sort(colSums(xmiss[retain_indv, ]))
+    retain_pos <- names(nMiss)[1:clean_pos]
 
     # now we pick those out in the original order
     clean_mat <- x012[rownames(x012) %in% retain_indv, colnames(x012) %in% retain_pos]

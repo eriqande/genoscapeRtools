@@ -6,7 +6,7 @@
 \usage{
 miss_curves_indv(x012, reorder = TRUE, loc_nums = integer(0),
   clean_pos = integer(0), clean_indv = integer(0),
-  clean_file_prefix = "cleaned", indv_specific_clean_pos = TRUE)
+  clean_file_prefix = "cleaned")
 }
 \arguments{
 \item{x012}{a matrix of 012 genotypes with missing data coded as -1}
@@ -24,10 +24,6 @@ retained in the file output.}
 but clean_pos is, then all the indv's will be returned.}
 
 \item{clean_file_prefix}{the prefix to add to the output file if you either of retainL or retainI is given.}
-
-\item{indv_specific_clean_pos}{Flag that I will probably eventually toss. I just have it in there for illustration.  If this is TRUE, when you are choosing
-clean_pos markers, it will find the best ones for the given clean_indv you are retaining.  If FALSE, then it just takes the loci as ordered by missingness
-amongst all individauls, which can lead to some loci having more missing data than you want!}
 }
 \description{
 By default this just orders things and returns a data frame of missingness and a ggplot that can
