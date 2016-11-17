@@ -4,11 +4,16 @@
 \alias{read_012}
 \title{read a set of 012 files from vcftools into a matrix of genotypes with appropriate dimnames}
 \usage{
-read_012(prefix)
+read_012(prefix, gz = FALSE)
 }
 \arguments{
 \item{prefix}{the (path) prefix on the files to be read.  The files will be \code{prefix.012},
 \code{prefix.012.indv}, and \code{prefix.012.pos}}
+
+\item{gz}{if this is set to TRUE, then the function expects that the 012 file ends in 012.gz
+and is gzipped.  For this to work, you have to have a decent shell on your system with \code{gzcat}
+for gunzipping the file to a stream.  If you are on a Mac, that should be fine.  If you are on
+Windows, probably not.  If there are any problems, don't keep your file gzipped!}
 }
 \value{
 Returns a matrix with n-indiv rows and n-loci columns.  The rownames are the indv names and the

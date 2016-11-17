@@ -7,11 +7,20 @@
 #' that at the moment).
 #' @param prefix  the (path) prefix on the files to be read.  The files will be \code{prefix.012},
 #' \code{prefix.012.indv}, and \code{prefix.012.pos}
+#' @param gz if this is set to TRUE, then the function expects that the 012 file ends in 012.gz
+#' and is gzipped.  For this to work, you have to have a decent shell on your system with \code{gzcat}
+#' for gunzipping the file to a stream.  If you are on a Mac, that should be fine.  If you are on
+#' Windows, probably not.  If there are any problems, don't keep your file gzipped!
 #' @return Returns a matrix with n-indiv rows and n-loci columns.  The rownames are the indv names and the
 #' colnames are the pos's.
 #' @export
-read_012 <- function(prefix) {
-  file <- paste0(prefix, ".012")
+read_012 <- function(prefix, gz = FALSE) {
+  if(gz == TRUE) {
+    file <- paste0("gzcat ", prefix, ".012.gz")
+  } else {
+    file <- paste0(prefix, ".012")
+  }
+
   posfile <-  paste0(prefix, ".012.pos")
   indvfile <-  paste0(prefix, ".012.indv")
 
