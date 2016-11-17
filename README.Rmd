@@ -12,7 +12,7 @@ output:
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "README-"
+  fig.path = "readme-figs/"
 )
 ```
 
@@ -22,9 +22,13 @@ a good cutoff might be.
 
 ## Example running through missing data visualization
 
-We have some data from American Kestrel from Rachael Bay and Kristen Ruegg.  There files are
-`cov0.5m.012`, `cov0.5m.012.indv`, and `cov0.5m.012.pos`. I have put all of those into
-the directory `~/Documents/UnsyncedData/AMKE` on my computer.
+We have some RAD data from Willow Flycatcher from numerous wonderful contributors and 
+processed bioinformatically by Rachael Bay and Kristen Ruegg.  These files are
+`wifl-10-15-16.012.gz`, `wifl-10-15-16.012.indv`, and `wifl-10-15-16.012.pos`. I have put all of those into
+the directory `/Documents/UnsyncedData/WIFL_10-15-16` on my computer.
+
+Notice that the actual "012" file itself has been gzipped to save space.  The latest version of
+this package allows that (so long as you are on a system like Unix...)
 
 First we gotta load the library:
 ```{r}
@@ -34,103 +38,156 @@ library(genoscapeRtools)
 ### Reading data in
 There's a function for that
 ```{r readit}
-amke <- read_012(prefix = "~/Documents/UnsyncedData/AMKE/cov0.5m")
+wifl <- read_012(prefix = "~/Documents/UnsyncedData/WIFL_10-15-16/wifl-10-15-16", gz = TRUE)
 ```
 
 ### Doing the missing data calcs
 We can do this in a locus centric or an individual centric manner.  Here we first do it 
 in an indiv-centric way:
 ```{r indivs}
-indv <- miss_curves_indv(amke)
+indv <- miss_curves_indv(wifl)
 indv$plot
 ```
 
 And in a locus-centric view:
 ```{r loci}
-loci <- miss_curves_locus(amke)
+loci <- miss_curves_locus(wifl)
 loci$plot
 ```
 
 ### Pulling out the data
-So, in theory, if we look at this and decide that we want to keep 140 individuals
-and roughly 100,000 positions, we should be able to do so in such a way that we
-have no individuals with more than about 25% missing data, and no loci that
-should have more than say 10% missing data.
+So, in theory, if we look at this and decide that we want to keep 175 individuals
+and roughly 105,000 positions, we should be able to do so in such a way that we
+have no individuals with more than about 17% missing data, and no loci that
+should have more than say 7% missing data.
 
 Let's see:
 ```{r get-data}
-clean <- miss_curves_indv(amke, clean_pos = 100000, clean_indv = 140)
+clean <- miss_curves_indv(wifl, clean_pos = 105000, clean_indv = 175)
 
 ```
-Make a picture of the result:
+We can make a picture of the result
 ```{r clean-pic}
 clean$plot
 ```
 
+It is hard to resolve the line at 104,704 from the one at 105,000.  
 
-## Read it back in
-Read the thing back in:
+### Read it back in
+
+Look at the files that were produced:
+```{r }
+dir(pattern = "cleaned_indv175_pos105000*")
+```
+
+To check, just for fun, we can read the thing back in:
 ```{r readback}
-amke2 <- read_012("cleaned_indv140_pos1e+05")
-```
-Then plot things
-```{r indiv2}
-indv2 <- miss_curves_indv(amke2)
-indv2$plot
+wifl_clean <- read_012("cleaned_indv175_pos105000")
 ```
 
-And by locus:
-```{r loc2}
-loci2 <- miss_curves_locus(amke2)
-loci2$plot
+And count up the distribution of missing data in indivs and markers and make sure it looks like it should:
+```{r count-missing}
+wifl_clean_miss <- wifl_clean == -1
+missing_perc_in_indvs <- rowSums(wifl_clean_miss) / ncol(wifl_clean_miss)
+missing_perc_in_loci <- colSums(wifl_clean_miss) / nrow(wifl_clean_miss)
+par(mfrow=c(1,2))
+hist(missing_perc_in_indvs, main = "Individuals")
+hist(missing_perc_in_loci, main = "Positions")
 ```
 
-That looks pretty good. It is right at about 10% missing data, which is were it should be at.  
+Booyah!  That looks right!
 
 
+## Getting the full VCF of those retained indv's and positions
 
-### Manually counting up amount of missing data
+The original VCF file that the original WIFL 012 file came from is about 16 Gb on the 
+server at UCLA.  It is a beast.  But it would be nice to be able to have a VCF of
+our selected markers and individuals.  The `.indv` and `.pos` files that are
+made `miss_curves_indv` when given the `clean_pos` and `clean_indv` arguments can
+be used with `vcftools` to select everything from the original VCF.
 
-We can go ahead and count up the fraction of missing data at each
-locus.  First, just to remind us what format this is in, let's
-look at the total proportion of missing:
-```{r totprop}
-table(amke2) / length(amke2)
+This is what it looks like on Hoffman after copying the `.indv` and `.pos` files
+there:
+```{sh, eval=FALSE}
+# first, if you haven't yet, do qrsh to get a compute node...
+[kruegg@login1 WIFL_10.15.16]$ qrsh
+[kruegg@n2189 WIFL_10.15.16]$ pwd
+/u/home/k/kruegg/nobackup-klohmuel/WIFL/WIFL_10.15.16
+[kruegg@n2189 WIFL_10.15.16]$ module load vcftools
+[kruegg@n2189 WIFL_10.15.16]$ vcftools --vcf WIFL_10.15.16.recode.vcf \
+                                       --out cleaned-175-105K  \
+                                       --keep cleaned_indv175_pos105000.012.indv \
+                                       --positions cleaned_indv175_pos105000.012.pos \
+                                       --recode 
+
+VCFtools - 0.1.14
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf WIFL_10.15.16.recode.vcf
+	--keep cleaned_indv175_pos105000.012.indv
+	--out cleaned-175-105K
+	--positions cleaned_indv175_pos105000.012.pos
+	--recode
+
+Keeping individuals in 'keep' list
+After filtering, kept 175 out of 219 Individuals
+Outputting VCF file...
+After filtering, kept 105000 out of a possible 4997594 Sites
+Run Time = 210.00 seconds
+
+# now, we might as well gzip that too, since we will be bringing it
+# to our laptop.  PLINK can read it directly when gzipped, too...
+[kruegg@n2189 WIFL_10.15.16]$ gzip -9 cleaned-175-105K.recode.vcf 
 ```
 
-That is almost 4% missing data overall.  Now we can look at the fraction of missing data at each locus
-```{r locfracs}
-nMiss <- colSums(amke2 == -1)
-hist(nMiss)
+After doing all of that, we can read it in with PLINK and make a binary version of the SNPs 
+out of it.  This is much faster to read.  This should be done with PLINK 1.9 or greater.
+```{sh, eval=FALSE}
+# this is the plink command to make a bed file from vcf
+plink --vcf cleaned-175-105K.recode.vcf.gz \
+      --out clean-wifl \
+      --make-bed \
+      --allow-extra-chr \
+      --double-id
+      
+# this is the output it shows...
+PLINK v1.90b3.42 64-bit (20 Sep 2016)      https://www.cog-genomics.org/plink2
+(C) 2005-2016 Shaun Purcell, Christopher Chang   GNU General Public License v3
+Logging to clean-wifl.log.
+Options in effect:
+  --allow-extra-chr
+  --double-id
+  --make-bed
+  --out clean-wifl
+  --vcf cleaned-175-105K.recode.vcf.gz
+
+4096 MB RAM detected; reserving 2048 MB for main workspace.
+--vcf: clean-wifl-temporary.bed + clean-wifl-temporary.bim +
+clean-wifl-temporary.fam written.
+105000 variants loaded from .bim file.
+175 people (0 males, 0 females, 175 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to clean-wifl.nosex .
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 175 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.976517.
+105000 variants and 175 people pass filters and QC.
+Note: No phenotypes present.
+--make-bed to clean-wifl.bed + clean-wifl.bim + clean-wifl.fam ... done.
+
+# look at how nice and small the bed and bim files are:
+/WIFL_10-15-16/--% du -h *
+4.4M	clean-wifl.bed
+3.8M	clean-wifl.bim
+8.0K	clean-wifl.fam
+4.0K	clean-wifl.log
+4.0K	clean-wifl.nosex
+ 84M	cleaned-175-105K.recode.vcf.gz
+ 15M	wifl-10-15-16.012.gz
+4.0K	wifl-10-15-16.012.indv
+ 10M	wifl-10-15-16.012.pos
+
 ```
-And that looks about right.
 
-## How it was wrong before
 
-Before Rachael caught a bug here, with `clean_pos` and `clean_indv` I was picking out the top individuals, but I was being lazy
-when picking out the top loci to go with them.  Instead of picking out the top loci for those particular top individuals, I was
-just picking out the loci with the least missing data across all the individuals.  So, random variation with 100K chances being
-what it is, that old, lazy method landed us with a tiny handful of loci that didn't have relatively very much missing data in all individuals,
-but somehow still had up to 25% missing data at the particular `clean_indv` top individuals.
-
-Before I deprecate it and remove it, there is an option. `indv_specific_clean_pos`, to `miss_curves_indv` that lets you see the results of the old lazy way.
-
-### Doing it the lazy way
-```{r clean-lazy}
-lazy <- miss_curves_indv(amke, clean_pos = 100000, clean_indv = 140, indv_specific_clean_pos = FALSE, clean_file_prefix = "lazy")
-```
-
-Then read it back in:
-```{r readbac2}
-cleanlazy <- read_012("lazy_indv140_pos1e+05")
-```
-
-```{r lazyplot}
-miss_curves_locus(cleanlazy)$plot
-```
-Yep, that shows that disturbing tail.
-
-Look at at it another way:
-```{r lazyhist}
-hist(colSums(cleanlazy == -1))
-```
