@@ -1,6 +1,6 @@
 genoscapeRtools
 ================
-17 November, 2016
+22 November, 2016
 
 -   [Example running through missing data visualization](#example-running-through-missing-data-visualization)
     -   [Reading data in](#reading-data-in)
@@ -8,6 +8,8 @@ genoscapeRtools
     -   [Pulling out the data](#pulling-out-the-data)
     -   [Read it back in](#read-it-back-in)
 -   [Getting the full VCF of those retained indv's and positions](#getting-the-full-vcf-of-those-retained-indvs-and-positions)
+-   [Using SNPRelate](#using-snprelate)
+    -   [Read SNPRelate2 directly from 012 file](#read-snprelate2-directly-from-012-file)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 This is an R package of tools in devlopment. At the moment it consists mostly of some utilities for investigating amounts of missing data and visualizing where a good cutoff might be.
@@ -196,3 +198,110 @@ Note: No phenotypes present.
 4.0K    wifl-10-15-16.012.indv
  10M    wifl-10-15-16.012.pos
 ```
+
+Using SNPRelate
+---------------
+
+In order to keep things in the R environment. Rather than diving straight into PLINK we might want to use `SNPRelate`, which is available on BioConductor. It is a little slow in reading the VCF in the first time, but then it stores things super efficiently in a gds file.
+
+``` r
+library(SNPRelate)
+#> Loading required package: gdsfmt
+#> SNPRelate -- supported by Streaming SIMD Extensions 2 (SSE2)
+
+# read data in from VCF:
+vcf.fn <- "~/Documents/UnsyncedData/WIFL_10-15-16/cleaned-175-105K.recode.vcf.gz"
+snpgdsVCF2GDS(vcf.fn, "boing.gds", method="biallelic.only") # write it to a file called test.gds
+#> VCF Format ==> SNP GDS Format
+#> Method: exacting biallelic SNPs
+#> Number of samples: 175
+#> Parsing "~/Documents/UnsyncedData/WIFL_10-15-16/cleaned-175-105K.recode.vcf.gz" ...
+#>  import 105000 variants.
+#> + genotype   { Bit2 175x105000, 4.4M } *
+#> Optimize the access efficiency ...
+#> Clean up the fragments of GDS file:
+#>     open the file 'boing.gds' (5.2M)
+#>     # of fragments: 63
+#>     save to 'boing.gds.tmp'
+#>     rename 'boing.gds.tmp' (5.2M, reduced: 516B)
+#>     # of fragments: 20
+
+# see what that file looks like:
+snpgdsSummary("boing.gds")
+#> The file name: /Users/eriq/Documents/git-repos/genoscapeRtools/boing.gds 
+#> The total number of samples: 175 
+#> The total number of SNPs: 105000 
+#> SNP genotypes are stored in SNP-major mode (Sample X SNP).
+
+# do a PCA
+genofile <- snpgdsOpen("boing.gds")
+pca <- snpgdsPCA(genofile, autosome.only = FALSE)
+#> Principal Component Analysis (PCA) on genotypes:
+#> Excluding 3 SNPs (monomorphic: TRUE, < MAF: NaN, or > missing rate: NaN)
+#> Working space: 175 samples, 104,997 SNPs
+#>     using 1 (CPU) core
+#> PCA: the sum of all selected genotypes (0, 1 and 2) = 29831599
+#> Tue Nov 22 14:20:31 2016    (internal increment: 4400)
+#> 
+[..................................................]  0%, ETC: ---    
+[==================================================] 100%, completed      
+#> Tue Nov 22 14:20:33 2016    Begin (eigenvalues and eigenvectors)
+#> Tue Nov 22 14:20:33 2016    Done.
+
+# convert to a data frame
+tab <- data.frame(sample.id = pca$sample.id,
+    EV1 = pca$eigenvect[,1],    # the first eigenvector
+    EV2 = pca$eigenvect[,2],    # the second eigenvector
+    stringsAsFactors = FALSE)
+
+# plot it
+plot(tab$EV2, tab$EV1, xlab="eigenvector 2", ylab="eigenvector 1")
+```
+
+![](readme-figs/snprelate-1.png)
+
+### Read SNPRelate2 directly from 012 file
+
+Even better, we can probably just read an 012 file directly:
+
+``` r
+snpgdsCreateGeno(gds.fn = "wifl_clean.gds", 
+                 genmat = wifl_clean, 
+                 sample.id = rownames(wifl_clean), 
+                 snp.id = colnames(wifl_clean), 
+                 snpfirstdim = FALSE) 
+
+snpgdsSummary("wifl_clean.gds")
+#> The file name: /Users/eriq/Documents/git-repos/genoscapeRtools/wifl_clean.gds 
+#> The total number of samples: 175 
+#> The total number of SNPs: 105000 
+#> SNP genotypes are stored in SNP-major mode (Sample X SNP).
+wifl_clean_gds <- snpgdsOpen("wifl_clean.gds")
+pca2 <- snpgdsPCA(wifl_clean_gds, autosome.only = FALSE)
+#> Principal Component Analysis (PCA) on genotypes:
+#> Excluding 3 SNPs (monomorphic: TRUE, < MAF: NaN, or > missing rate: NaN)
+#> Working space: 175 samples, 104,997 SNPs
+#>     using 1 (CPU) core
+#> PCA: the sum of all selected genotypes (0, 1 and 2) = 6054341
+#> Tue Nov 22 14:20:38 2016    (internal increment: 4400)
+#> 
+[..................................................]  0%, ETC: ---    
+[==================================================] 100%, completed      
+#> Tue Nov 22 14:20:40 2016    Begin (eigenvalues and eigenvectors)
+#> Tue Nov 22 14:20:40 2016    Done.
+
+tab2 <- data.frame(sample.id = pca2$sample.id,
+    EV1 = pca2$eigenvect[,1],    # the first eigenvector
+    EV2 = pca2$eigenvect[,2],    # the second eigenvector
+    stringsAsFactors = FALSE)
+
+# plot it
+plot(tab2$EV2, tab2$EV1, xlab="eigenvector 2", ylab="eigenvector 1")
+```
+
+![](readme-figs/snprelate-from-012-1.png) \#\# Running admixture
+
+These are just notes to myself. You can use the plink bed files, but you gotta change the chrom names. Might as well just change them all to 1.
+
+    awk '{sum++; printf("1\t%s\t%s\t%d\n", $2,$3,sum);}'  wifl_big.map > wifl_nochrom.map
+    2016-11-17 12:38 /tmp/--% plink --file wifl_big --map wifl_nochrom.map --make-bed  --out wifl-nochrom

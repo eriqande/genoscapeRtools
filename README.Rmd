@@ -190,4 +190,64 @@ Note: No phenotypes present.
 
 ```
 
+## Using SNPRelate 
 
+In order to keep things in the R environment.  Rather than diving straight into PLINK we
+might want to use `SNPRelate`, which is available on BioConductor.  It is a little slow in 
+reading the VCF in the first time, but then it stores things super efficiently in a gds file.
+```{r snprelate}
+library(SNPRelate)
+
+# read data in from VCF:
+vcf.fn <- "~/Documents/UnsyncedData/WIFL_10-15-16/cleaned-175-105K.recode.vcf.gz"
+snpgdsVCF2GDS(vcf.fn, "boing.gds", method="biallelic.only") # write it to a file called test.gds
+
+# see what that file looks like:
+snpgdsSummary("boing.gds")
+
+# do a PCA
+genofile <- snpgdsOpen("boing.gds")
+pca <- snpgdsPCA(genofile, autosome.only = FALSE)
+
+# convert to a data frame
+tab <- data.frame(sample.id = pca$sample.id,
+    EV1 = pca$eigenvect[,1],    # the first eigenvector
+    EV2 = pca$eigenvect[,2],    # the second eigenvector
+    stringsAsFactors = FALSE)
+
+# plot it
+plot(tab$EV2, tab$EV1, xlab="eigenvector 2", ylab="eigenvector 1")
+```
+
+### Read SNPRelate2 directly from 012 file
+Even better, we can probably just read an 012 file directly:
+```{r snprelate-from-012}
+snpgdsCreateGeno(gds.fn = "wifl_clean.gds", 
+                 genmat = wifl_clean, 
+                 sample.id = rownames(wifl_clean), 
+                 snp.id = colnames(wifl_clean), 
+                 snpfirstdim = FALSE) 
+
+snpgdsSummary("wifl_clean.gds")
+wifl_clean_gds <- snpgdsOpen("wifl_clean.gds")
+pca2 <- snpgdsPCA(wifl_clean_gds, autosome.only = FALSE)
+
+tab2 <- data.frame(sample.id = pca2$sample.id,
+    EV1 = pca2$eigenvect[,1],    # the first eigenvector
+    EV2 = pca2$eigenvect[,2],    # the second eigenvector
+    stringsAsFactors = FALSE)
+
+# plot it
+plot(tab2$EV2, tab2$EV1, xlab="eigenvector 2", ylab="eigenvector 1")
+```
+
+
+## Running admixture
+
+These are just notes to myself.  You can use the plink bed files, but you gotta change the chrom names.  Might as 
+well just change them all to 1.
+```
+awk '{sum++; printf("1\t%s\t%s\t%d\n", $2,$3,sum);}'  wifl_big.map > wifl_nochrom.map
+2016-11-17 12:38 /tmp/--% plink --file wifl_big --map wifl_nochrom.map --make-bed  --out wifl-nochrom
+
+```
