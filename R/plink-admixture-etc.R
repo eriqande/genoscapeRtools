@@ -107,3 +107,76 @@ run_admixture <- function(bed, Reps = 2, Kvals = 2:5, path = ".", outdir = "admi
   })
 
 }
+
+
+
+
+#' read in all the AMIXTURE files that are in the r_X_K_Y directories produced by run_admixture()
+#'
+#' Reads it into a tidy data frame
+#' @param path  the directory that holds all the r_X_K_y directories.
+#' @param which_dat  By default, this gets the Q values.  If you want to get
+#' the allele frequencies, set this to "P"
+#' @export
+slurp_admixture <- function(path = "admixture_runs", which_dat = "Q") {
+  stopifnot(which_dat %in% c("P", "Q"))
+  dirs <- dir(path = path)
+  dirs <- dirs[stringr::str_detect(dirs, "^r_[0-9]+_K_[0-9]+")]  # get the results directories
+
+  # read the loci in
+  bimfile <- file.path(path, "data", "input.bim")
+  bim <- readr::read_delim(bimfile, delim = "\t", col_names = FALSE)
+
+  locs <- bim$X2  # vector of locus names
+
+  famfile <- file.path(path, "data", "input.fam")
+  fam <- readr::read_delim(famfile, delim = "\t", col_names = FALSE)
+
+  ids <- fam$X1
+
+  Ks <- stringr::str_split_fixed(dirs, "_", n = 4)[,4]
+  Rs <- stringr::str_split_fixed(dirs, "_", n = 4)[,2]
+
+  ret <- lapply(1:length(dirs), function(i) {
+    dir <- dirs[i]
+    K <- Ks[i]
+    rep <- Rs[i]
+
+    if(which_dat == "Q") {
+      dat <- readr::read_delim(file.path(path, dir, paste0("input.", K, ".Q")), delim = " ", col_names = FALSE) %>%
+        setNames(paste0("c_", 1:K)) %>%
+        mutate(ID = ids, K = K, rep = rep) %>%
+        select(ID, K, rep, everything()) %>%
+        tidyr::gather(key = cluster, value = "Q", -ID, -K, -rep)
+    } else {
+      dat <- readr::read_delim(file.path(path, dir, paste0("input.", K, ".P")), delim = " ", col_names = FALSE) %>%
+        setNames(paste0("c_", 1:K)) %>%
+        mutate(pos = locs, K = K, rep = rep) %>%
+        select(pos, K, rep, everything()) %>%
+        tidyr::gather(key = cluster, value = "P", -pos, -K, -rep)
+    }
+    dat
+  }) %>%
+    dplyr::bind_rows()
+
+}
+
+
+
+#' ggplot the Qs from multiple runs of ADMIXTURE
+#'
+#' This just plots everything onto one page and returns it as a ggplot object.
+#' @param Qs the data frame that comes from running \code{\link{slurp_admixture}}
+#' on the Qs.
+#' @export
+ggplot_the_Qs <- function(Qs) {
+  maxK <- max(Qs$K)
+  g <- ggplot(Qs, aes(x = ID, y = Q, fill = cluster)) +
+    geom_bar(stat = "identity", position = "stack", width = 1.0) +
+ #   scale_fill_manual(values = rainbow(maxK)) +
+    facet_grid(rep + K ~ ., drop=TRUE, space="free", scales="free")
+
+  g
+}
+
+

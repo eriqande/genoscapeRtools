@@ -2,10 +2,12 @@
 
 export("%>%")
 export(convert_012_to_bed)
+export(ggplot_the_Qs)
 export(miss_curves_indv)
 export(miss_curves_locus)
 export(read_012)
 export(run_admixture)
+export(slurp_admixture)
 importFrom(Rcpp,evalCpp)
 importFrom(magrittr,"%>%")
 useDynLib(genoscapeRtools)
