@@ -54,7 +54,7 @@ convert_012_to_bed <- function(W, chromo_override = FALSE, prefix = "plink") {
       chr <- 1
     }
 
-    map <- cbind(chr, locs, 0, bp)
+    map <- cbind(chr, locs, 0, 1:length(locs))  # put the position as just the index to keep everything in original order
     colnames(map) <- NULL
     message(paste0("writing plink map file to ", prefix, ".map"))
     write.table(map, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE, file = paste0(prefix, ".map"))
@@ -78,8 +78,11 @@ convert_012_to_bed <- function(W, chromo_override = FALSE, prefix = "plink") {
 #' @param Kvals
 #' @param path  the path that gets you to the directory you want to put all the results in.
 #' @param outdir the single name of the output directory you want
+#' @param num_cores  the number of cores to parallelize the admixture runs over.  By default it will
+#' try to detect the number of cores and then use 1 less than that.  (or 1, whichever is larger). But
+#' you can set it to whatever...
 #' @export
-run_admixture <- function(bed, Reps = 2, Kvals = 2:5, path = ".", outdir = "admixture_runs") {
+run_admixture <- function(bed, Reps = 2, Kvals = 2:5, path = ".", outdir = "admixture_runs", num_cores = max(1, parallel::detectCores() - 1)) {
   OUT <- file.path(path, outdir)
   DAT <- file.path(OUT, "data")
   if(dir.exists(OUT)) stop(paste0("Directory ", OUT, " already exists! Remove it if you want to proceed"))
@@ -104,7 +107,8 @@ run_admixture <- function(bed, Reps = 2, Kvals = 2:5, path = ".", outdir = "admi
   # run admixture with a different seed each time
   parallel::mclapply(1:nrow(dirs), function(i) {
     system(paste0("cd ", dirs[i, 1], "; admixture  -s ", i * 1234, " ../data/input.bed ", dirs[i, 3], " > admixture.stdout 2> admixture.stderr "))
-  })
+  }, mc.cores = num_cores
+  )
 
 }
 
@@ -168,13 +172,28 @@ slurp_admixture <- function(path = "admixture_runs", which_dat = "Q") {
 #' This just plots everything onto one page and returns it as a ggplot object.
 #' @param Qs the data frame that comes from running \code{\link{slurp_admixture}}
 #' on the Qs.
+#' @param sort_df a data frame that has, at a minimum, a column called "ID" that has the
+#' birds you want to include, in the order you want to include them.
 #' @export
-ggplot_the_Qs <- function(Qs) {
+ggplot_the_Qs <- function(Qs, sort_df = NULL) {
+
+  if(!is.null(sort_df)) {
+    bird_levels <- sort_df$ID
+    missers <- setdiff(unique(Qs$ID), bird_levels)
+    if(length(missers > 0)) {
+      warning("Sorting birds with sort_df will remove the following non-ordered individuals: ", paste(missers, collapse = ", "))
+    }
+    Qs$ID <- factor(Qs$ID, levels = bird_levels)
+    Qs <- Qs %>% filter(!is.na(ID))
+  }
+  # get the colors that distruct uses by default (I got these by pulling them out of the PS code.  You gotta set anything larger than 1 to 1.)
+  distruct_colors <- c("#FF994D", "#0099E6", "#E6FF00", "#FF99E6", "#339933", "#800080", "#FF004D", "#00FF00", "#0000FF", "#FF00FF", "#FFE699", "#B34D00", "#00FFFF", "#808000", "#FF9999", "#008080", "#99BF26", "#7326E6", "#26BF99")
   maxK <- max(Qs$K)
   g <- ggplot(Qs, aes(x = ID, y = Q, fill = cluster)) +
     geom_bar(stat = "identity", position = "stack", width = 1.0) +
- #   scale_fill_manual(values = rainbow(maxK)) +
-    facet_grid(rep + K ~ ., drop=TRUE, space="free", scales="free")
+    scale_fill_manual(values = distruct_colors[1:maxK]) +
+    facet_grid(K + rep ~ ., drop=TRUE, space="free", scales="free") +
+    theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5,size = 0.1))
 
   g
 }

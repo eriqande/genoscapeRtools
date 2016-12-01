@@ -219,7 +219,7 @@ tab <- data.frame(sample.id = pca$sample.id,
 plot(tab$EV2, tab$EV1, xlab="eigenvector 2", ylab="eigenvector 1")
 ```
 
-### Read SNPRelate2 directly from 012 file
+## Read SNPRelate2 directly from 012 file
 Even better, we can probably just read an 012 file directly:
 ```{r snprelate-from-012}
 snpgdsCreateGeno(gds.fn = "wifl_clean.gds", 

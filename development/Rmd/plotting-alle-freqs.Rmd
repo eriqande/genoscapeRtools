@@ -1,0 +1,126 @@
+---
+title: "Plotting Allele Freqs"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  github_document:
+    toc: true
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "plot-freqs-figs/"
+)
+```
+
+
+## Introduction
+This is just documenting some explorations I am making to see how we might want to try plotting
+allele freqs between different groups to get a sense for what sorts of variation we are going to be seeing.
+I am thinking that hexbin plots of the number of loci with SNP allele freqs would be good.
+
+But we want to do it between all different pairs of populations.  And we probably would be well-served
+by heavily filtering for overall minor allele frequency.  Let's face it, we are interested in 
+finding SNPs that very different in allele freq, so we may as well toss the rare ones, cuz they won't 
+be too different between pops anyway.
+
+Load some libraries:
+```{r load-libs}
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(genoscapeRtools)
+library(readr)
+library(stringr)
+```
+
+
+Get the data that we want to work with.  We will try the 105K SNPs.
+```{r read-snps}
+wifl_clean <- read_012("../../cleaned_indv175_pos105000")
+```
+That is a big matrix, which is a fairly good way of keeping it for the moment.
+
+Let's get the group designations of the individuals:
+```{r get-groups}
+grps <- read_delim("../data/WIFL_Groups_forAlleleFreqCalc.txt", delim = "\t", col_names = FALSE) %>%
+  setNames(c("ID", "location", "state", "supspp", "alle_grp"))
+
+```
+
+It appears that this will take forever in tidyr, so let's split the matrices up and do simple
+colSums.
+```{r try-tidy}
+keep_birds <- grps$ID[!is.na(grps$alle_grp)]
+keep_bird_grps <- grps$alle_grp[!is.na(grps$alle_grp)]
+split_birds <- split(keep_birds, keep_bird_grps)
+
+# now, let's just focus on groups with >=10 individuals
+split_birds2 <- split_birds  #[sapply(split_birds, length) >= 10]
+
+wifl_clean[wifl_clean == -1] <- NA
+
+# first, dump anything that is low frequency
+wifl_thin <- wifl_clean[, colSums(wifl_clean, na.rm = TRUE) > 10]
+
+# now, lapply to get matrices for each group
+freqs <- lapply(split_birds2, function(x) {
+  y <- wifl_thin[x,]
+  frq <- colSums(y, na.rm = TRUE) / (2 * colSums(!is.na(y)))
+  data_frame(pos = names(frq), freq = frq)
+}) %>%
+  bind_rows(., .id = "grp")
+
+# and finally we make one column for each group
+frqmat <- tidyr::spread(data = freqs, key = grp, value = freq)
+names(frqmat)[-1] <- paste0("grp_", names(frqmat)[-1])
+
+```
+
+
+
+## ggpairs plotting
+Now, we are in a place where we might be able to ggpairs these guys.  Got some ideas from [here](http://stackoverflow.com/questions/20872133/using-stat-binhex-with-ggpairs)
+
+```{r pair-plots}
+df <- frqmat[-1]
+p <- ggpairs(df, lower="blank")
+seq <- 1:ncol(df)
+for (x in seq) {
+  for (y in seq) {
+    if (y>x) {
+      p <- putPlot(p, ggplot(df, aes_string(x=names(df)[x],y=names(df)[y])) + stat_binhex(bins=25) +
+                     scale_fill_gradientn(colours = rev(rainbow(9)),
+                                          breaks = c(1, 2, 4, 32, 128, 1000, 10000, 100000),
+                                          trans = "log10"), 
+                   y,x)
+    }
+  }
+}
+```
+
+
+## Consider filtering for assayability first
+This would go like this:
+```{r}
+paddy <- data_frame(pos = colnames(wifl_clean)) %>% tidyr::separate(pos, into = c("scaff", "bp"), sep = "--", convert = TRUE) %>%
+  mutate(length = as.numeric(str_replace(scaff, "scaff.*size", ""))) %>%
+  group_by(scaff) %>%
+  mutate(leftpos = c(0,bp)[-(n() + 1)],
+         rightpos = c(bp, length[1])[-1]) %>%
+  mutate(leftpad = bp - leftpos,
+         rightpad = rightpos - bp)
+
+# see what that looks like
+paddy
+```
+
+Now we can filter on how many flanking basepairs there are free of variation.
+```{r}
+paddy %>%
+  filter(leftpad > 20 & rightpad > 20) %>%
+  filter(leftpad < 1000 & rightpad < 1000)
+```

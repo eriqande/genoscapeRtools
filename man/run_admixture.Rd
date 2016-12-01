@@ -5,7 +5,8 @@
 \title{run admixture Reps times at each of K values}
 \usage{
 run_admixture(bed, Reps = 2, Kvals = 2:5, path = ".",
-  outdir = "admixture_runs")
+  outdir = "admixture_runs", num_cores = max(1, parallel::detectCores() -
+  1))
 }
 \arguments{
 \item{bed}{the bed file to use. (With the .bed extension.  Example = "plink.bed".)  The .bim file has to be with it
@@ -16,6 +17,10 @@ copied to "input.bed" and "input.bim" in the "data" directory in the outdir}
 \item{path}{the path that gets you to the directory you want to put all the results in.}
 
 \item{outdir}{the single name of the output directory you want}
+
+\item{num_cores}{the number of cores to parallelize the admixture runs over.  By default it will
+try to detect the number of cores and then use 1 less than that.  (or 1, whichever is larger). But
+you can set it to whatever...}
 }
 \description{
 Just a wrapper to mclapply over all this.

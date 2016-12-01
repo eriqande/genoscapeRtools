@@ -78,7 +78,15 @@ admixture.stderr  admixture.stdout  input.4.P         input.4.Q
 
 ```
 
-So, all that remains is a simple function to read all that output into a nice tidy data frame.
+When that is done, read it into a data frame:
+```{r slurp-it, message=FALSE}
+admixQ <- slurp_admixture()
+```
 
+And then plot it quickly.
+```{r plot-admix, width=14, height = 12}
+ggplot_the_Qs(Qs = admixQ)
+```
 And, I need to add a cross-validation flag if we want to do cross-validation.
+
 
