@@ -4,11 +4,14 @@
 \alias{ggplot_the_Qs}
 \title{ggplot the Qs from multiple runs of ADMIXTURE}
 \usage{
-ggplot_the_Qs(Qs)
+ggplot_the_Qs(Qs, sort_df = NULL)
 }
 \arguments{
 \item{Qs}{the data frame that comes from running \code{\link{slurp_admixture}}
 on the Qs.}
+
+\item{sort_df}{a data frame that has, at a minimum, a column called "ID" that has the
+birds you want to include, in the order you want to include them.}
 }
 \description{
 This just plots everything onto one page and returns it as a ggplot object.

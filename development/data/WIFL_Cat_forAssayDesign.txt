@@ -1,0 +1,176 @@
+Individual	Population	State	Original	Subspecies_Pure	Within_Subspecies
+1710-20367	Bigelow Meadows	CA	brw	brew_pure	brew_South
+1710-20368	Bigelow Meadows	CA	brw	brew_pure	brew_South
+1710-20369	Bigelow Meadows	CA	brw	brew_pure	brew_South
+1710-20371	Bigelow Meadows	CA	brw	brew_pure	brew_South
+1710-46314	Bigelow Meadows	CA	brw	brew_pure	brew_South
+1710-46315	Bigelow Meadows	CA	brw	brew_pure	brew_South
+1590-97279	Finley NWR	OR	brw	brew_pure	NA
+1710-20525	Finley NWR	OR	brw	brew_pure	NA
+1710-20526	Finley NWR	OR	brw	brew_pure	NA
+1590-97273	Jones Creek	OR	brw	brew_pure	NA
+1590-97274	Jones Creek	OR	brw	brew_pure	NA
+1710-20514	Jones Creek	OR	brw	brew_pure	NA
+1710-20515	Jones Creek	OR	brw	brew_pure	NA
+1710-20516	Jones Creek	OR	brw	brew_pure	NA
+1710-20517	Jones Creek	OR	brw	brew_pure	NA
+1710-20518	Jones Creek	OR	brw	brew_pure	NA
+1710-20519	Jones Creek	OR	brw	brew_pure	NA
+1710-20520	Jones Creek	OR	brw	brew_pure	NA
+1710-20521	Jones Creek	OR	brw	brew_pure	NA
+1590-97281	Priem Road	OR	brw	brew_pure	NA
+1590-97282	Priem Road	OR	brw	brew_pure	NA
+1710-20527	Priem Road	OR	brw	brew_pure	NA
+1710-20528	Priem Road	OR	brw	brew_pure	NA
+1710-20529	Priem Road	OR	brw	brew_pure	NA
+1710-20531	Priem Road	OR	brw	brew_pure	NA
+1710-46168	Carbondale	WA	brw	brew_pure	brew_North
+1710-46169	Carbondale	WA	brw	brew_pure	brew_North
+1710-46170	Carbondale	WA	brw	brew_pure	brew_North
+1710-46171	Carbondale	WA	brw	brew_pure	brew_North
+1710-46172	Carbondale	WA	brw	brew_pure	brew_North
+1710-46165	Edgwick	WA	brw	brew_pure	brew_North
+1710-46166	Edgwick	WA	brw	brew_pure	brew_North
+1590-97284	Fork clearcut	WA	brw	brew_pure	brew_North
+1710-20539	Fork clearcut	WA	brw	brew_pure	brew_North
+1710-20540	Fork clearcut	WA	brw	brew_pure	brew_North
+1710-20541	Fork clearcut	WA	brw	brew_pure	brew_North
+1710-20507	Fall Creek 2	ID	ada	ada_pure	NA
+1710-20508	Fall Creek 2	ID	ada	ada_pure	NA
+1740-91946	Fall Creek 2	ID	ada	ada_pure	NA
+1740-91947	Fall Creek 2	ID	ada	ada_pure	NA
+1740-91948	Fall Creek 2	ID	ada	ada_pure	NA
+1740-91949	Fall Creek 2	ID	ada	ada_pure	NA
+1740-91950	Fall Creek 2	ID	ada	ada_pure	NA
+1740-91939	Mink Creek	ID	ada	ada_pure	NA
+1740-91940	Mink Creek	ID	ada	ada_pure	NA
+1740-91941	Mink Creek	ID	ada	ada_pure	NA
+1740-91942	Mink Creek	ID	ada	ada_pure	NA
+1740-91943	Mink Creek	ID	ada	ada_pure	NA
+1740-91944	Mink Creek	ID	ada	ada_pure	NA
+1590-97494	Hamon Memorial	MT	ada	NA	ada_North
+1590-97497	Hamon Memorial	MT	ada	NA	ada_North
+1590-97498	Hamon Memorial	MT	ada	NA	ada_North
+1590-97493	Lee Metcalf NWR	MT	ada	NA	ada_North
+1710-20366	Malheur NWR	OR	ada	NA	ada_North
+1710-46312	Malheur NWR	OR	ada	NA	ada_North
+1740-91796	Malheur NWR	OR	ada	NA	ada_North
+1740-91797	Malheur NWR	OR	ada	NA	ada_North
+1740-91798	Malheur NWR	OR	ada	NA	ada_North
+1740-91800	Malheur NWR	OR	ada	NA	ada_North
+1590-97390	Fish Creek	UT	ada	ada_pure	ada_south
+1590-97391	Fish Creek	UT	ada	ada_pure	ada_south
+1590-97392	Fish Creek	UT	ada	ada_pure	ada_south
+1590-97393	Fish Creek	UT	ada	ada_pure	ada_south
+1740-51646	Fish Creek	UT	ada	ada_pure	ada_south
+1740-51684	Fish Creek	UT	ada	ada_pure	ada_south
+1740-51686	Fish Creek	UT	ada	ada_pure	ada_south
+1740-51687	Fish Creek	UT	ada	ada_pure	ada_south
+1740-91921	Fish Creek	UT	ada	ada_pure	ada_south
+1740-91922	Fish Creek	UT	ada	ada_pure	ada_south
+1740-91923	Fish Creek	UT	ada	ada_pure	ada_south
+1740-51823	White River Confluence to the Green River	UT	ada	ada_pure	ada_south
+1740-51824	White River Confluence to the Green River	UT	ada	ada_pure	ada_south
+1740-51825	White River Confluence to the Green River	UT	ada	ada_pure	ada_south
+1740-51826	White River Confluence to the Green River	UT	ada	ada_pure	ada_south
+1740-51827	White River Confluence to the Green River	UT	ada	ada_pure	ada_south
+1740-51828	White River Confluence to the Green River	UT	ada	ada_pure	ada_south
+1740-51656	Little White River Rec. Area	SD	tra	NA	tra_west
+1740-51657	Little White River Rec. Area	SD	tra	NA	tra_west
+1740-51658	Little White River Rec. Area	SD	tra	NA	tra_west
+1740-51659	Little White River Rec. Area	SD	tra	NA	tra_west
+1740-51664	Waubay NWR	SD	tra	NA	tra_west
+1740-51665	Waubay NWR	SD	tra	NA	tra_west
+1740-51666	Waubay NWR	SD	tra	NA	tra_west
+1740-51667	Waubay NWR	SD	tra	NA	tra_west
+1740-91791	Willow Slew	IN	tra	tra_pure	NA
+1740-91792	Willow Slew	IN	tra	tra_pure	NA
+1740-91793	Willow Slew	IN	tra	tra_pure	NA
+1740-91794	Willow Slew	IN	tra	tra_pure	NA
+WIFLA	#N/A	MD	tra	tra_pure	NA
+WIFLB	#N/A	MD	tra	tra_pure	NA
+2550-06470	FCTC-SABO	MI	tra	NA	NA
+2730-29419	FCTC-SABO	MI	tra	tra_pure	NA
+2750-69223	FCTC-SABO	MI	tra	tra_pure	NA
+2750-69228	FCTC-SABO	MI	tra	tra_pure	NA
+1740-91788	Jen Owen's Mom's House	NY	tra	tra_pure	tra_east
+1740-91789	Jen Owen's Mom's House	NY	tra	tra_pure	tra_east
+1740-91790	Jen Owen's Mom's House	NY	tra	tra_pure	tra_east
+1740-91784	Tower Road	NY	tra	tra_pure	tra_east
+2760-18636	Bath	PA	tra	tra_pure	tra_east
+2760-18638	Bath	PA	tra	tra_pure	tra_east
+2760-18648	Bath	PA	tra	tra_pure	tra_east
+2760-18640	Bethlehem	PA	tra	tra_pure	tra_east
+2760-18642	Bethlehem	PA	tra	tra_pure	tra_east
+2760-18643	Bethlehem	PA	tra	tra_pure	tra_east
+2760-18645	Bethlehem	PA	tra	tra_pure	tra_east
+2760-18653	Easton	PA	tra	tra_pure	tra_east
+2760-18654	Easton	PA	tra	tra_pure	tra_east
+2760-18659	Easton	PA	tra	tra_pure	tra_east
+2760-18660	Easton	PA	tra	tra_pure	tra_east
+2760-18655	Hellertown	PA	tra	tra_pure	tra_east
+2760-18656	Hellertown	PA	tra	tra_pure	tra_east
+2760-18641	Orefield	PA	tra	tra_pure	tra_east
+2760-18646	Orefield	PA	tra	tra_pure	tra_east
+2760-18647	Orefield	PA	tra	tra_pure	tra_east
+2760-18657	Orefield	PA	tra	tra_pure	tra_east
+2760-18658	Orefield	PA	tra	tra_pure	tra_east
+2760-18661	Orefield	PA	tra	tra_pure	tra_east
+2760-18662	Orefield	PA	tra	tra_pure	tra_east
+2760-18663	Orefield	PA	tra	tra_pure	tra_east
+1590-97252	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1710-20576	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1710-20605	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1710-20698	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1740-51644	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1740-51717	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1740-51750	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1740-51820	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1740-51881	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1740-91591	Roosevelt Lake	AZ	ext	ext_pure	ext_pure
+1590-97239	San Pedro	AZ	ext	ext_pure	ext_pure
+1590-97241	San Pedro	AZ	ext	ext_pure	ext_pure
+1710-20402	San Pedro	AZ	ext	ext_pure	ext_pure
+1710-20453	San Pedro	AZ	ext	ext_pure	ext_pure
+1710-20469	San Pedro	AZ	ext	ext_pure	ext_pure
+1710-20482	San Pedro	AZ	ext	ext_pure	ext_pure
+1710-20491	San Pedro	AZ	ext	ext_pure	ext_pure
+1740-91619	San Pedro	AZ	ext	ext_pure	ext_pure
+1740-91636	San Pedro	AZ	ext	ext_pure	ext_pure
+1590-97247	San Pedro/Gila River confluence	AZ	ext	ext_pure	ext_pure
+1740-91611	San Pedro/Gila River confluence	AZ	ext	ext_pure	ext_pure
+1740-91617	San Pedro/Gila River confluence	AZ	ext	ext_pure	ext_pure
+1740-91618	San Pedro/Gila River confluence	AZ	ext	ext_pure	ext_pure
+1740-91620	San Pedro/Gila River confluence	AZ	ext	ext_pure	ext_pure
+2450-87066	San Diego	CA	ext	NA	ext_SW_SD
+2450-87070	San Diego	CA	ext	NA	ext_SW_SD
+2580-61405	San Diego	CA	ext	NA	ext_SW_SD
+2580-61406	San Diego	CA	ext	NA	ext_SW_SD
+2640-78804	San Diego	CA	ext	NA	ext_SW_SD
+2640-79001	San Diego	CA	ext	NA	ext_SW_SD
+2170-11718	South Fork Kern River	CA	ext	ext_Kern	ext_NW_Kern
+2170-11725	South Fork Kern River	CA	ext	ext_Kern	ext_NW_Kern
+2170-11726	South Fork Kern River	CA	ext	ext_Kern	ext_NW_Kern
+2170-11727	South Fork Kern River	CA	ext	ext_Kern	ext_NW_Kern
+2170-11728	South Fork Kern River	CA	ext	ext_Kern	ext_NW_Kern
+2170-11753	South Fork Kern River	CA	ext	NA	NA
+2170-11865	South Fork Kern River	CA	ext	NA	NA
+2290-20010	South Fork Kern River	CA	ext	ext_Kern	ext_NW_Kern
+2290-20023	South Fork Kern River	CA	ext	ext_Kern	ext_NW_Kern
+2290-20025	South Fork Kern River	CA	ext	ext_Kern	ext_NW_Kern
+2290-20029	South Fork Kern River	CA	ext	NA	NA
+2290-20034	South Fork Kern River	CA	ext	NA	NA
+2290-20066	South Fork Kern River	CA	ext	NA	NA
+1590-97224	White Mountains	AZ	ext	ext_WhiteM	NA
+1590-97225	White Mountains	AZ	ext	ext_WhiteM	NA
+1590-97232	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM
+1590-97260	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM
+1590-97262	White Mountains	AZ	ext	ext_WhiteM	NA
+1590-97376	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM
+1590-97377	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM
+1590-97379	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM
+1590-97380	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM
+1710-20631	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM
+1710-20632	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM
+1710-20633	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM
+1740-91633	White Mountains	AZ	ext	ext_WhiteM	ext_East_WM

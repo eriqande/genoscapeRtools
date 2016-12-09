@@ -1,0 +1,188 @@
+---
+title: "Choosing Assays"
+output:
+  html_notebook:
+    toc: yes
+  github_document:
+    toc: yes
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "choosing-assays-figs/"
+)
+```
+
+## Introduction
+
+Here are some explorations that we are doing for selecting SNPs that we can turn into assays.
+
+I think that I will do most of the operations using using information in the 012 file.  Then
+at the end we can pull the sequences out that we need and go from there to compile the
+assay order.
+
+One issue we have come up against is the question of how aggressive we want to be about ensuring that 
+we don't variation in the flanking sequences.  We have been working with data sets that have been filtered
+to only include SNPs that have been typed in lots of individuals.  This might leave out some SNPs on the 
+edges of the paired-ends.  We might want to go back and get that variation.  At first, 
+we had chosen not to go back and get it, since we were quite successful designing SNPs from a fairly small number of 
+individuals (about 20) in WIWAs.  But then I recalled that we let FLORAGANEX designate which 
+SNPs were assayable, and they might have been using all the variation.
+
+What is clear, however, is that we will want to filter out rare variation before assessing whether
+something is assayable.  There is no point in worrying about the influence of rare variants on
+SNP assayability.  And further, we are not going to be interested in designing assays for 
+rare variants, so we really can just toss them out from the beginning.
+
+Nonetheless, it will be interesting to see how many assayable SNPs we are left with while
+using different criteria. So, I will write a quick and dirty function for that.
+
+## First, get the data
+
+Load some libraries:
+```{r load-libs}
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(genoscapeRtools)
+library(readr)
+library(stringr)
+```
+
+Then read in data from the original 012 file (with 350K SNPs):
+```{r readit}
+wifl <- read_012(prefix = "~/Documents/UnsyncedData/WIFL_10-15-16/wifl-10-15-16", gz = TRUE)
+```
+
+
+Now, we want a function that will:
+
+1. Filter out rare variants (like frequency < 0.025 or 0.03)
+2. Determine the distance to the next SNPs
+3. Say whether the SNPs is not assayable, maybe assayable (might be against the edge of a RAD tag), or almost certainly assayable (has a SNP > 20 bp
+from it, but not too many bp!)
+
+Let's make that:
+```{r func-assayable}
+#' return SNPs and say whether the are assayable or not, along with the MAFs
+#' @param w a matrix like produced by read_012
+#' @param MAF the minimum minor allele frequency to retain a SNP either for assaying
+#' or for determining whether there is flanking variation.
+compile_assayable <- function(w, minMAF = 0.03, flank = 20) {
+  w[w == -1] <- NA  # mark the missing ones as missing.
+  gc <- (2 * colSums(!is.na(w)))  # count how many gene copies are copied at each SNP
+  frq <- colSums(w, na.rm = TRUE) / gc  # get the  overall freqs of the "1" allele
+  keepers <- frq > minMAF & frq < 1.0 - minMAF
+  
+  # now make a data frame of them and keep track of the scaffold and base pairs too:
+  df <- dplyr::data_frame(snp = colnames(w)[keepers],
+                          num_gene_copies = gc[keepers],
+                          freq = frq[keepers]) %>%
+    dplyr::mutate(pos = snp) %>%
+    tidyr::separate(pos, into = c("scaffold", "bp"), sep = "--", convert = TRUE) %>%
+    dplyr::mutate(length = as.numeric(str_replace(scaffold, "scaff.*size", ""))) %>%
+    dplyr::group_by(scaffold) %>%
+    dplyr::mutate(leftpos = c(0,bp)[-(n() + 1)],
+           rightpos = c(bp, length[1])[-1]) %>%
+    dplyr::mutate(leftpad = bp - leftpos,
+           rightpad = rightpos - bp) %>%
+    dplyr::ungroup()
+  
+  # and in the end, we will specify the status of each:
+  df %>%
+    dplyr::mutate(assayable = ifelse(rightpad > 20 & leftpad > 20, TRUE, FALSE)) %>%
+    dplyr::mutate(on_right_edge = ifelse(rightpad > 2000, TRUE, FALSE),
+                  on_left_edge = ifelse(leftpad > 2000, TRUE, FALSE)
+    )
+}
+```
+
+And with that we can pretty quickly count up the results of doing different types of filtering:
+```{r try-compile}
+ca <- compile_assayable(wifl)
+
+# and once we have done that, we can just tally things up:
+ca %>%
+  group_by(assayable, on_right_edge, on_left_edge) %>%
+  tally()
+```
+
+The "almost certainly assayable" group there is "TRUE, FALSE, FALSE".  There are a lot of those.  We probably would want to follow up on 
+all the assayable=TRUE categories.  The TRUE, TRUE, TRUEs might be in regions of low diversity (maybe under selection), so we should follow
+up with them.
+
+Now, we can see how different the results would have been if we chose 0.01 as our MAF cutoff instead of 
+0.03.  We do that by identifying assayable ones, then pitching any out that have MAFs below 0.03 (so that we 
+are still retaining only assayable SNPs with freqs greater than 0.03).
+```{r compile-01}
+ca01 <- compile_assayable(wifl, minMAF = 0.01)
+
+ca01 %>%
+  filter(freq > 0.03 & freq < 0.97) %>%
+  group_by(assayable, on_right_edge, on_left_edge) %>%
+  tally()
+```
+
+So that is fewer than before.  Not a whole lot fewer, but still fairly substantial.  I think it would be good to 
+filter at about 0.03, myself.
+
+## Choosing assayable SNPs
+
+This will vary by species.  Gonna do this later.
+
+## Retrieving the Sequences
+
+From the foregoing, it is clear we can identify assayable SNPs.  Then we will choose which ones we want.  Once we have them in hand
+we will need to make assays from them.  This is different than it was before because we don't have things in tidy
+little RAD loci.  We have to go back to the genome to pull out the sequences.  Hmmm...I think we can use samtools and 
+and indexed fasta file to do that.
+
+Let's experiment.
+```{sh, eval=FALSE}
+# here I have the WIFL genome, and I index it with samtools faidx
+2016-12-02 05:54 /WIFL_genome/--% pwd
+/Users/eriq/Documents/UnsyncedData/WIFL_genome
+2016-12-02 05:54 /WIFL_genome/--% samtools faidx WIFL.fa 
+
+# now, to get any portion of that I should be able to....
+2016-12-02 06:01 /WIFL_genome/--% samtools faidx WIFL.fa "scaffold1|size7828297:92000-92060" "scaffold1|size7828297:388919-389000"
+>scaffold1|size7828297:92000-92060
+CCGGTTTTTTTTCCCCCCGGCCCTAAATCCGCTCAGTTCGGGGCATTCCCTCCCGCTTTC
+T
+>scaffold1|size7828297:388919-389000
+GCATTTCACACAGCACGGTCCATTTGGTGGCTGGGGCTTTGCTTGAAGCAGGTCATGGGG
+AAGAATCCAGCTCCTTCCTTCA
+
+
+```
+Kabam!  That is super fast and beautiful! 
+
+So, let's pretend that I have the 100 SNPs I want to get.  For fun, i will just grab these at random
+```{r rando-grab}
+bogus100 <- ca %>%
+  filter(assayable == TRUE, on_right_edge == FALSE, on_left_edge == FALSE) %>%
+  sample_n(100)
+```
+
+And now we can extract the sequences around each of those, with 50 bp on either side, let's say
+```{r get-seqs}
+regions <- paste("\"", bogus100$scaffold, ":", bogus100$bp - 50, "-", bogus100$bp + 50, "\"", sep = "")
+region_string <- paste(regions, collapse = " ")
+
+fasta <- "~/Documents/UnsyncedData/WIFL_genome/WIFL.fa"
+
+call <- paste("samtools faidx ", fasta, region_string)
+
+system(call)
+
+```
+Now I just need to munge those sequences together into single strings and put them 
+in a data frame and I will be able to use "snps2assays" to make the assay orders.
+
+Cool.
+

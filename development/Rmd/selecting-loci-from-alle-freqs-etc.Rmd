@@ -1,0 +1,366 @@
+---
+title: "Selecting Loci on the Basis of Differentiation and Allele Freqeuncies, etc."
+output:
+  html_notebook:
+    toc: yes
+  github_document:
+    toc: yes
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "selecting-loci-figs/"
+)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+```
+
+## Introduction
+
+We have about 175 individuals at 105K SNPs, and we want to explore the distribution of 
+informativeness of each of those SNPs for population assignment, and then ultimately 
+create lists of our top candidates.  These top candidates will then have to be thinned according
+to which loci are assayable, and then further thinned according to where the occur (i.e.,
+we are going to want to choose things that are not right next to one another...)
+
+For the most part, I envision doing the same types of operations on the data, regardless of
+whether we are looking between or within subspecies, so let's think about it that way.
+
+The data are easiest to obtain in a big 012 matrix.  I find that is better to compute allele counts
+of subsets of that matrix BEFORE turning it into a tidy data frame.  tidyr just seems to take too
+long, otherwise.
+
+## Bird Categories
+
+Kristen and I decided that we wanted to have the flexibility to look at a lot of different comparisons both
+within and between subspecies groups of WIFLs.  Here is the file of designations that Kristen has 
+supplied:
+```{r group-desig, message=FALSE}
+grps <- read_delim("../data/WIFL_Cat_forAssayDesign.txt", delim = "\t")
+grps
+```
+That is pretty straightforward.  Let's just count up how many birds we have in each group and subgroup:
+```{r count-grps, rows.print = 30}
+grps %>%
+  group_by(Subspecies_Pure, Within_Subspecies) %>%
+  tally()
+```
+This is good to have a look at.  It makes it clear that these categories are not strictly nested.  But we have plenty of 
+birds to choose from, so that is good.
+
+## Getting allele counts and freqs
+
+We are going to read the 012 file and then do colSums of split matrices
+```{r read-snps}
+wifl_clean <- read_012("../../cleaned_indv175_pos105000")
+```
+That's the matrix, now we need to get lists of the IDs of individuals that we want to split
+on
+```{r get-lists}
+major_grps <- grps %>%
+  filter(!is.na(Subspecies_Pure)) %>%
+  split(.$Subspecies_Pure) %>%
+  lapply(., function(x) x$Individual)
+
+minor_grps <- grps %>%
+  filter(!is.na(Within_Subspecies)) %>%
+  split(.$Within_Subspecies) %>%
+  lapply(., function(x) x$Individual)
+```
+
+Now, we want to get the counts of different alleles from that 012 matrix.  We want to 
+get the count of "0" alleles and of "1" alleles.    Here is our function for that
+```{r grp-cnt-function}
+#' @param x012 an 012 matrix like that returned by read_012
+#' @param glist a named list of ID vectors.
+group_012_cnts <- function(x012, glist) {
+  x012[x012 == -1] <- NA  # turn 1 to NA
+  lapply(glist, function(x) {
+    y <- x012[x,]
+    ntot <- 2 * colSums(!is.na(y))
+    n1 <- colSums(y, na.rm = TRUE)
+    n0 <- ntot - n1
+    tibble(pos = names(ntot), n0 = n0, n1 = n1)
+  }) %>%
+    bind_rows(.id = "group") %>%
+    mutate(ntot = n0 + n1,
+           freq = n1 / ntot)
+}
+
+```
+
+And now we get our allele freqs
+```{r get-freqs}
+major_grp_freqs <- group_012_cnts(wifl_clean, major_grps)
+minor_grp_freqs <- group_012_cnts(wifl_clean, minor_grps)
+```
+
+## Doing Comparisons
+
+Those last two tibbles are the raw material for doing comparisons between groups
+but now we want to code up the comparisons.  
+
+### A function to make comparisons
+
+Here is a quick function that will create a data frame that compares two groups
+```{r comp-pair-setup}
+#' @param df the data frame you are picking things from
+#' @param grp1 the name of the first group in the comparison
+#' @param grp2 the name of the second group in the comparison
+comp_pair <- function(df, grp1, grp2) {
+  x <- df %>%
+    filter(group == grp1) %>%
+    select(group, pos, freq, ntot)
+  
+  y <- df %>%
+    filter(group == grp2) %>%
+    select(group, pos, freq, ntot)
+  
+  inner_join(x, y, by = c("pos")) %>%
+    mutate(comparison = paste(group.x, group.y, sep = " vs ")) %>%
+    select(pos, comparison, starts_with("group"), starts_with("freq"), starts_with("ntot"))
+}
+```
+And here is how we would use it to prepare ourselves to look at the comparison between
+North and south adastus:
+```{r demo-plucker}
+adastusNS <- comp_pair(minor_grp_freqs, "ada_North", "ada_south")
+```
+
+### A function to compute the prob of correct assignment
+
+The prob that you will correctly identify an individual's origin in a pairwise comparison
+is a pretty simple one to compute and intuitive.  So, here is a function to compute it
+```{r ass-prob-func}
+#' @param p0 allele frequency in first population
+#' @param p1 allele frequency in second population
+correct_ass_prob <- function(p0, p1) {
+  # genotype freqs in the first population
+  P00 <- (1 - p0)^2
+  P12 <- 2 * p0 * (1 - p0)
+  P11 <- p0^2
+  
+  # same in the second population
+  Q00 <- (1 - p1)^2
+  Q12 <- 2 * p1 * (1 - p1)
+  Q11 <- p1^2
+  
+  # prob of correctly assigning a P-population individual:
+  PCP <- P00 * (P00 >= Q00)    +   P12 * (P12 >= Q12)    +    P11 * (P11 >= Q11)
+  
+  # same for a Q-population individual
+  PCQ <- Q00 * (P00 < Q00)    +   Q12 * (P12 < Q12)    +    Q11 * (P11 < Q11)
+  
+  # return the arithmetic mean of those two
+  (PCP + PCQ) / 2
+  
+}
+```
+And here we show how to use that function and we show the first few good looking
+loci for adastus N vs S:
+```{r cap-demo}
+adastusNS %>% 
+  mutate(cap = correct_ass_prob(freq.x, freq.y)) %>%
+  arrange(desc(cap)) %>%
+  head(n = 100)
+```
+And just for fun, let's see how things look for a comparison between 
+two of the subspecies, say brewsteri and trailii:
+```{r cap-demo2}
+comp_pair(major_grp_freqs, "brew_pure", "tra_pure") %>%
+  mutate(cap = correct_ass_prob(freq.x, freq.y)) %>%
+  arrange(desc(cap)) %>%
+  head(n = 100)
+```
+
+## Some High-Level Looks at Some Comparisons
+
+
+### Between subspecies
+Let's look at the between-subspecies comparisons here. We will see what the best 1000 loci do for us in each case. 
+We will do all the comparisons, except for those that are between different flavors of extimus:
+```{r prep-comps}
+comps <- combn(unique(major_grp_freqs$group), 2)
+keep <- str_detect(comps, "ext") %>%
+  matrix(nrow = 2) %>%
+  colSums() < 2
+comps <- comps[, keep]
+
+major_comps <- lapply(1:ncol(comps), function(c) {
+  comp_pair(major_grp_freqs, comps[1, c], comps[2, c])
+}) %>%
+  bind_rows()
+
+```
+
+Now, `major_comps` is large tibble.  We need to compute the correct assignment prob for each locus, and then
+let's rank them and only keep the top 5,000 for each comparison
+```{r comp-caps}
+major5K <- major_comps %>%
+  mutate(cap = correct_ass_prob(freq.x, freq.y)) %>%
+  group_by(comparison) %>%
+  mutate(rank = rank(-cap)) %>%
+  filter(rank <= 5000) %>%
+  mutate(samsizes = sprintf("(%.1f) (%.1f)", mean(ntot.x), mean(ntot.y))) %>%
+  ungroup() %>%
+  mutate(comparison = paste(comparison, samsizes))
+```
+Then we can plot those just to get a sense for what things look like
+```{r plot-maj5K, fig.width = 14, fig.height = 10}
+ggplot(major5K, aes(x = rank, y = cap, colour = comparison)) + 
+  geom_line(size = 2)
+```
+
+Well, that is very interesing.  It seems quite clear that _Adastus_ pure versus _Brewsteri_ pure are the toughest to resolve there.
+Does that make sense?  
+
+Let's quickly look at the top 200 loci for that comparison:
+```{r, rows.print = 20}
+major5K %>% 
+  filter(comparison == "ada_pure vs brew_pure (58.4) (70.1)") %>% 
+  arrange(rank) %>%
+  head(n = 200)
+```
+
+### Within subspecies
+
+Let's do the same thing within subspecies, but we will only look within subspecies in these cases
+```{r prep-comps2}
+comps2 <- combn(unique(minor_grp_freqs$group), 2)
+
+# now restrict that to just the comparisons within subspp
+pref <- str_replace_all(comps2, "_.*", "") %>%
+  matrix(nrow = 2)
+keep2 <- pref[1,] == pref[2,]
+
+comps2 <- comps2[, keep2]
+
+minor_comps <- lapply(1:ncol(comps2), function(c) {
+  comp_pair(minor_grp_freqs, comps2[1, c], comps2[2, c])
+}) %>%
+  bind_rows()
+
+```
+Then...
+```{r comp-caps2}
+minor5K <- minor_comps %>%
+  mutate(cap = correct_ass_prob(freq.x, freq.y)) %>%
+  group_by(comparison) %>%
+  mutate(rank = rank(-cap)) %>%
+  filter(rank <= 5000) %>%
+  mutate(samsizes = sprintf("(%.1f) (%.1f)", mean(ntot.x), mean(ntot.y))) %>%
+  ungroup() %>%
+  mutate(comparison = paste(comparison, samsizes))
+```
+Then we can plot those just to get a sense for what things look like
+```{r plot-min5K, fig.width = 14, fig.height = 10}
+ggplot(minor5K, aes(x = rank, y = cap, colour = comparison)) + 
+  geom_line(size = 2)
+```
+
+## How Much Are Good Loci Shared?
+
+One burning question is whether the loci that are good in one comparison are also good in 
+another.  Since I have only kept the top 5000 loci for each comparison, and don't want to go
+back now, I will forge ahead with those.  One simple summary would be the number
+of times each locus appears in the top 5000:
+```{r num-occur-major5k}
+major5K %>% 
+  group_by(pos) %>%
+  summarise(num_pairs = n(),
+            the_ranks = paste(sort(as.integer(rank)), collapse = ", ")) %>%
+  arrange(desc(num_pairs))
+  
+```
+
+
+### What if we just choose loci based on the hardest subspecies?
+I am curious what happens of we choose 96 loci that resolve adastus and brewsteri.  How well are the other subspecies
+resolved with those?  Let's find those 96 that are best for adastus and brewsteri:
+```{r top-a-to-b}
+ba_best <- comp_pair(major_grp_freqs, "ada_pure", "brew_pure") %>%
+  mutate(cap = correct_ass_prob(freq.x, freq.y)) %>%
+  mutate(rank = rank(-cap)) %>%
+  filter(rank <= 96) %>%  # chooses 96 or 97 depending on if there are ties..
+  arrange(rank)
+
+# print that to see what it looks like
+ba_best
+```
+OK, now we are going to pick those out of the data frame of genotypes and make a gsi_sim file:
+```{r convert-to-gsi-sim}
+tmp <- as.data.frame(wifl_clean[, ba_best$pos], stringsAsFactors = FALSE) %>%
+  mutate(Individual = rownames(wifl_clean)) %>%
+  select(Individual, everything()) %>%
+  tbl_df() %>%
+  tidyr::gather(data = ., key = "pos", value = "geno", -Individual)
+
+# change to two alleles
+tmp$geno[tmp$geno == -1] = " 0 0 "
+tmp$geno[tmp$geno == "0"] = " 1 1 "
+tmp$geno[tmp$geno == "1"] = " 1 2 "
+tmp$geno[tmp$geno == "2"] = " 2 2 "
+
+# pick out the ones in the different subspecies groups and convert back to wide format
+tmp2 <- tmp %>%
+  left_join(grps %>% select(Individual, Subspecies_Pure)) %>%
+  filter(!is.na(Subspecies_Pure)) %>%
+  tidyr::spread(data = ., key = pos, value = geno) 
+
+# now start writing out a gsi_sim file
+cat(nrow(tmp2), ncol(tmp2) - 2, "\n", file = "gsi_input.txt")
+cat(names(tmp2)[-(1:2)], sep = "\n", file = "gsi_input.txt", append = TRUE)
+dump <- lapply(split(tmp2, tmp2$Subspecies_Pure), function(x) {
+  x$Individual <- paste(x$Subspecies_Pure, x$Individual, sep = ":")
+  cat("POP", x$Subspecies_Pure[1], "\n", file = "gsi_input.txt", append = TRUE)
+  x$Subspecies_Pure <- ""
+  write.table(x, quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "  ", file = "gsi_input.txt", append = TRUE)
+})
+
+```
+Now we can run that in gsi_sim and get the results out:
+```{sh run-gsi}
+~/Documents/git-repos/gsi_sim/gsi_sim-Darwin -b development/Rmd/gsi_input.txt --self-assign | awk -F ";" '/SELF_ASSIGN_A_LA_GC_CSV/ {print $1, $2, $3}' | sed 's/SELF_ASSIGN_A_LA_GC_CSV:\///g; s/:/ /g;' | awk 'BEGIN {print "truepop indiv asspop prob"} {print}' > development/Rmd/gsi_results
+```
+Then slurp that in and present it.  Note that the adastus versus brewsteri results will suffer high grading bias, but the
+other ones should be reasonably accurate (maybe mildly biased). 
+```{r serve-gsi, message=FALSE}
+gsi_res <- read_delim("gsi_results", delim = " ")
+gsi_res
+```
+
+So, for fun we can see how the within-species comparison go with those loci:
+```{r within-species}
+# pick out the ones in the different subspecies groups and convert back to wide format
+tmp2 <- tmp %>%
+  left_join(grps %>% select(Individual, Within_Subspecies)) %>%
+  filter(!is.na(Within_Subspecies)) %>%
+  tidyr::spread(data = ., key = pos, value = geno) 
+
+# now start writing out a gsi_sim file
+cat(nrow(tmp2), ncol(tmp2) - 2, "\n", file = "gsi_input.txt")
+cat(names(tmp2)[-(1:2)], sep = "\n", file = "gsi_input.txt", append = TRUE)
+dump <- lapply(split(tmp2, tmp2$Within_Subspecies), function(x) {
+  x$Individual <- paste(x$Within_Subspecies, x$Individual, sep = ":")
+  cat("POP", x$Within_Subspecies[1], "\n", file = "gsi_input.txt", append = TRUE)
+  x$Within_Subspecies <- ""
+  write.table(x, quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "  ", file = "gsi_input.txt", append = TRUE)
+})
+```
+Now we can run that in gsi_sim and get the results out:
+```{sh run-gsi2}
+~/Documents/git-repos/gsi_sim/gsi_sim-Darwin -b development/Rmd/gsi_input.txt --self-assign | awk -F ";" '/SELF_ASSIGN_A_LA_GC_CSV/ {print $1, $2, $3}' | sed 's/SELF_ASSIGN_A_LA_GC_CSV:\///g; s/:/ /g;' | awk 'BEGIN {print "truepop indiv asspop prob"} {print}' > development/Rmd/gsi_results
+```
+Then slurp that in and present it.  Note that the adastus versus brewsteri results will suffer high grading bias, but the
+other ones should be reasonably accurate (maybe mildly biased). 
+```{r serve-gsi2, message=FALSE}
+gsi_res2 <- read_delim("gsi_results", delim = " ")
+gsi_res2
+```
