@@ -39,15 +39,21 @@ each.  Then we will filter by assayability and see how many we end up with.
 
 I have wrapped a lot of the gritty work into a few functions.
 
+## Processing the "Divergence SNPs"
+These are the SNPs that we are choosing because of allele freq
+differences between certain groups.
+
 ### Get the SNPs 
-We are going to develop SNPs from amongst those that passed our "clean" filters:
+We are going to develop SNPs from amongst those that passed our "clean" filters (even though, 
+later, we include
+more variation to ensure nothing is in the flanking regions)
 ```{r read-snps, message=FALSE}
 wifl_clean <- read_012("../cleaned_indv175_pos105000")
 ```
 
 
 ### Get and process the groups
-We also want the groups that we are putting the birds into:
+We also want the groups that we are putting the birds into. 
 Here is the file of designations that Kristen has 
 supplied:
 ```{r group-desig, message=FALSE}
@@ -88,7 +94,7 @@ major_grp_freqs <- group_012_cnts(wifl_clean, major_grps)
 minor_grp_freqs <- group_012_cnts(wifl_clean, minor_grps)
 ```
 
-## Doing the comparisons
+### Doing the comparisons
 
 Here we have some messy stuff to just pick out the comparisons that
 we want to look at, and then we actually make a big data frame of all
@@ -115,7 +121,7 @@ major_comps %>% group_by(comparison) %>% tally()
 
 ### The "minor" comparison (within subspecies)
 
-we will only look within subspecies in these cases
+We will only look within subspecies in these cases
 ```{r prep-comps2}
 comps2 <- combn(unique(minor_grp_freqs$group), 2)
 
@@ -135,7 +141,7 @@ minor_comps <- lapply(1:ncol(comps2), function(c) {
 minor_comps %>% group_by(comparison) %>% tally()
 ```
 
-## Choosing the top 300 for each comparison
+### Choosing the top 300 for each comparison
 This is relatively easy, it is just filtering.  We rank things and then take the top 300.  This might
 be slightly less than 300 if there are ties, but that is OK, I think.  We will stick them 
 together at the end.
@@ -155,7 +161,7 @@ There are `r nrow(top300)` rows in that data frame, but the total number of uniq
 Methinks that would be a wonderful set to use if we were able to economically use baits and NGS to get the 
 genotypes.  That might be possible some day.
 
-## Whittling these down by assayability
+### Whittling these down by assayability
 
 For this, we are going to take `top300` and just filter it by whether or not it is assayable.  We define it as assayble if it doesn't
 have any SNP with MAF > 0.02 (and taken from our less filtered data set where a SNP is called if it appears in at least 50% of the 
@@ -231,8 +237,11 @@ num_occur <- tmp %>%
 top40 <- left_join(tmp, num_occur)
   
 ```
+
+
+#### Just for fun---what does LFMM say about these?
 Before we print that out, I want to join the LFMM scores onto it:
-```{r get-lfmm, message=FALSE, rows.print=40}
+```{r get-lfmm, message=FALSE, warning=FALSE, rows.print=40}
 lfmm <- readr::read_delim("~/Documents/UnsyncedData/WIFL/WIFL_LFMMresults.txt", delim = "\t") %>%
   tidyr::gather(key = "variable", value = "fdr_p", -scaffold, -pos) %>%
   tidyr::unite(snp, scaffold, pos, sep = "--")
@@ -270,90 +279,9 @@ Orange are the selected SNPs and blue are all SNPs.  We see that there is a diff
 but that might just be because we have chosen SNPs that do not have very low minor allele frequencies.
 
 
-## Final Step, Choosing a set of 192 SNPs
+## Processing the "Climate SNPs"
 
-### Revisiting the actual alleles
-For the final stage, we need to go back to the original VCF so that we know what the
-REF and ALT alleles are, so we can put together the assay order.  We are going to 
-continue to ignore the possibility of indels, which means that we just have to 
-pull the snps that we care about out of the VCF file.  We don't need all the individual
-data on these, so I will just return info on one individual, NULL, that is not even in the 
-file.
-
-Doing this part on hoffman:
-```
-[kruegg@n2238 WIFL_10.15.16]$ pwd
-/u/home/k/kruegg/nobackup-klohmuel/WIFL/WIFL_10.15.16
-[kruegg@n2238 WIFL_10.15.16]$ module load vcftools
-[kruegg@n2238 WIFL_10.15.16]$ module load bcftools
-
-# filter it all down....
-[kruegg@n2238 WIFL_10.15.16]$ vcftools --vcf WIFL_10.15.16.recode.vcf --out design-variants  --recode  --positions snps-to-care-about.txt --indv NULL 
-
-VCFtools - 0.1.14
-(C) Adam Auton and Anthony Marcketta 2009
-
-Parameters as interpreted:
-	--vcf WIFL_10.15.16.recode.vcf
-	--out design-variants
-	--positions snps-to-care-about.txt
-	--recode
-	--indv NULL
-
-Keeping individuals in 'keep' list
-After filtering, kept 0 out of 219 Individuals
-Outputting VCF file...
-
-[kruegg@n2238 WIFL_10.15.16]$ bgzip design-variants.recode.vcf 
-
-```
-Now I can bring that file back to my laptop and tabix it:
-```
-2016-12-08 07:59 /WIFL/--% pwd
-/Users/eriq/Documents/UnsyncedData/WIFL
-2016-12-08 07:59 /WIFL/--% scp kruegg@hoffman2.idre.ucla.edu:/u/nobackup/klohmuel/kruegg/WIFL/WIFL_10.15.16/design-variants.recode.vcf.gz  ./ 
-
-2016-12-08 08:00 /WIFL/--% tabix design-variants.recode.vcf.gz 
-
-```
-Now, we can retrieve variants overlapping a given set of regions easily:
-```
-# here is what our file of regions looks like
-2016-12-08 08:06 /WIFL/--% cat test_pos.txt 
-scaffold66|size1465758	750000	770000
-scaffold68|size1967880	500000	530000
-
-# and here we have retrieved all the SNPs in those regions
-2016-12-08 08:06 /WIFL/--% tabix design-variants.recode.vcf.gz -R test_pos.txt 
-scaffold66|size1465758	760102	.	C	T	6847.19	.	.	GT:AD:DP:GQ:PL
-scaffold66|size1465758	760264	.	T	G	99773.2	.	.	GT:AD:DP:GQ:PL
-scaffold66|size1465758	760290	.	T	C	82551.1	.	.	GT:AD:DP:GQ:PL
-scaffold66|size1465758	760311	.	T	C	104446	.	.	GT:AD:DP:GQ:PL
-scaffold66|size1465758	760378	.	T	G	15369.2	.	.	GT:AD:DP:GQ:PL
-scaffold66|size1465758	760604	.	C	T	4966.67	.	.	GT:AD:DP:GQ:PL
-scaffold68|size1967880	519980	.	C	A	2233.52	.	.	GT:AD:DP:GQ:PL
-scaffold68|size1967880	520028	.	T	A	2059.61	.	.	GT:AD:DP:GQ:PL
-scaffold68|size1967880	520176	.	C	T	5527.85	.	.	GT:AD:DP:GQ:PL
-scaffold68|size1967880	520326	.	C	A	41058.8	.	.	GT:AD:DP:GQ:PL
-scaffold68|size1967880	520437	.	G	C	2216.86	.	.	GT:AD:DP:GQ:PL
-scaffold68|size1967880	520522	.	G	A	1740.29	.	.	GT:AD:DP:GQ:PL
-
-```
-
-### Selecting the 192 targets
-
-#### "Divergence" SNPs 
-Kristen made up a data frame showing how many SNPs to take from the top of each 
-pairwise comparison.  Some pairwise comparisons were deemed unimportant and others
-had low sample sizes, so we don't take many from them, etc.  That data frame looks like:
-```{r, message=FALSE}
-snp_pair_wts <- read_delim("inputs/wifl_snp_comparison_counts.txt", delim = "\t")
-snp_pair_wts
-```
-
-
-#### "Climate SNPs"
-But, while we are at it, we are going to include
+While we are at it, we are going to include
 about 25 climate-associated SNPs, too.  Kristen gave me this:
 ```
 Here are the climatic variables with the highest loading: 
@@ -391,6 +319,23 @@ climate_snps <- lfmm %>%
 
 climate_snps
 ```
+
+
+## Getting >192 candidate SNPs from the Climate and Divergence SNPs
+
+
+### Selecting the 192 targets
+
+#### "Divergence" SNPs 
+Kristen made up a data frame showing how many SNPs to take from the top of each 
+pairwise comparison.  Some pairwise comparisons were deemed unimportant and others
+had low sample sizes, so we don't take many from them, etc.  That data frame looks like:
+```{r, message=FALSE}
+snp_pair_wts <- read_delim("inputs/wifl_snp_comparison_counts.txt", delim = "\t")
+snp_pair_wts
+```
+
+
 
 #### Picking out SNPs
 
@@ -435,3 +380,172 @@ column and saving the result in exactly the same format in a file named
 ```{r write-candidates}
 write_csv(candidate_snps, path = "candidate_snps_untossed.csv")
 ```
+
+
+## Fetching Allelic types and Sequences to prepare the assay order
+
+We can get our list of final candidates like this:
+```{r get-final-candi, message=FALSE}
+final_candidates <- read_csv("candidate_snps_tossed.csv") %>%
+  filter(toss_it == FALSE)
+```
+
+### Getting allelic types
+Now, from those candidates we want to make a file that is tab-delimited with the name of the
+SNP we are focusing on, along with a string that can be used to pick out any variation (using tabix)
+within 250 bp of that SNP.
+
+We will make the LeftStartingPoint 250 bp to the left of POS and the RightEndPoint 250 bp
+to the right.  
+```{r make-var-regions}
+regions <- final_candidates %>% 
+  mutate(left = POS - 250,
+         right = POS + 250) %>%
+  mutate(extractor = paste(CHROM, ":", left, "-", right, sep = ""))  %>%
+  select(snp, extractor)
+
+regions
+
+write.table(regions, row.names = FALSE, col.names = FALSE, quote = FALSE, sep = "\t", file = "regions-for-candidates.txt")
+```
+
+
+For the final stage, we need to go back to the original VCF so that we know what the
+REF and ALT alleles are, so we can put together the assay order.  We are going to 
+continue to ignore the possibility of indels, which means that we just have to 
+pull the snps that we care about out of the VCF file.  We don't need all the individual
+data on these, so I will just return info on one individual, NULL, that is not even in the 
+file.
+
+Doing this part on hoffman:
+```{sh, eval=FALSE}
+[kruegg@n2238 WIFL_10.15.16]$ pwd
+/u/home/k/kruegg/nobackup-klohmuel/WIFL/WIFL_10.15.16
+[kruegg@n2238 WIFL_10.15.16]$ module load vcftools
+[kruegg@n2238 WIFL_10.15.16]$ module load bcftools
+
+# filter it all down....
+[kruegg@n2238 WIFL_10.15.16]$ vcftools --vcf WIFL_10.15.16.recode.vcf --out design-variants  --recode  --positions snps-to-care-about.txt --indv NULL 
+
+VCFtools - 0.1.14
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf WIFL_10.15.16.recode.vcf
+	--out design-variants
+	--positions snps-to-care-about.txt
+	--recode
+	--indv NULL
+
+Keeping individuals in 'keep' list
+After filtering, kept 0 out of 219 Individuals
+Outputting VCF file...
+
+[kruegg@n2238 WIFL_10.15.16]$ bgzip design-variants.recode.vcf 
+```
+
+Now I can bring that file back to my laptop and tabix it:
+```{sh, eval=FALSE}
+2016-12-08 07:59 /WIFL/--% pwd
+/Users/eriq/Documents/UnsyncedData/WIFL
+2016-12-08 07:59 /WIFL/--% scp kruegg@hoffman2.idre.ucla.edu:/u/nobackup/klohmuel/kruegg/WIFL/WIFL_10.15.16/design-variants.recode.vcf.gz  ./ 
+
+2016-12-08 08:00 /WIFL/--% tabix design-variants.recode.vcf.gz 
+```
+Now, we can retrieve variants overlapping our candidate regions pretty easily, but we need to keep each such variant
+associated with the actual SNP, so there is some nasty shell programming here:
+```{sh, eval=FALSE}
+2016-12-09 06:12 /tutorials/--% (master) while read line; do array=($line); tabix ~/Documents/UnsyncedData/WIFL/design-variants.recode.vcf.gz  "${array[1]}" | awk -v snp="${array[0]}" '{printf("%s\t%s\n", snp, $0);}' ;  done < regions-for-candidates.txt > relevant_variation.txt 
+2016-12-09 06:12 /tutorials/--% (master) pwd
+/Users/eriq/Documents/git-repos/genoscapeRtools/tutorials
+```
+
+At any rate, the result of that looks like this:
+```{sh, eval=FALSE}
+scaffold1006|size252274--136397	scaffold1006|size252274	136158	.	C	T	35032.8	.	.	GT:AD:DP:GQ:PL
+scaffold1006|size252274--136397	scaffold1006|size252274	136276	.	T	C	6472.29	.	.	GT:AD:DP:GQ:PL
+scaffold1006|size252274--136397	scaffold1006|size252274	136285	.	C	T	23582	.	.	GT:AD:DP:GQ:PL
+scaffold1006|size252274--136397	scaffold1006|size252274	136397	.	C	A	49764	.	.	GT:AD:DP:GQ:PL
+scaffold1006|size252274--136397	scaffold1006|size252274	136418	.	A	G	158703	.	.	GT:AD:DP:GQ:PL
+scaffold1006|size252274--136397	scaffold1006|size252274	136426	.	T	C	96229.6	.	.	GT:AD:DP:GQ:PL
+scaffold1006|size252274--136397	scaffold1006|size252274	136580	.	G	A	20303.2	.	.	GT:AD:DP:GQ:PL
+scaffold1006|size252274--136397	scaffold1006|size252274	136604	.	T	G	3768.48	.	.	GT:AD:DP:GQ:PL
+scaffold101|size1699134--364887	scaffold101|size1699134	364752	.	T	C	64148.6	.	.	GT:AD:DP:GQ:PL
+scaffold101|size1699134--364887	scaffold101|size1699134	364770	.	G	A	5528.3	.	.	GT:AD:DP:GQ:PL
+```
+
+
+And now we can read that into something that will be appropriate for snps2assays:
+```{r readv, message=FALSE}
+variation <- read_delim("relevant_variation.txt", delim = "\t", col_names = FALSE) %>%
+  select(-X2, -X4, -(X7:X10)) %>%
+  setNames(c("CHROM", "truePOS", "REF", "ALT")) %>%
+  mutate(snppos = as.integer(str_replace(CHROM, "^.*--", ""))) %>%
+  mutate(POS = (truePOS - snppos) + 251) %>%
+  select(CHROM, POS, REF, ALT, truePOS)
+variation
+```
+Note that we actually use the name of the SNP as if it were the "CHROM" because we will pull sequence out around just that spot.  And 
+POS is the position of the SNP within that fragment (which is at position 251, cuz we put 250 bp of flanking region on each side.)
+
+### Getting sequences
+
+We are close now.  We just need to retrieve the consensus sequences 250 bp on either side
+of each SNP we want.  This is a job for `samtools faidx`. I have indexed the fasta of 
+the genome and now we just use an ugly bash script much like with tabix to get the 
+consensus sequence and store it in a file along with the snp name.
+```{sh, eval=FALSE}
+2016-12-09 06:35 /tutorials/--% (master) while read line; do array=($line); samtools faidx ~/Documents/UnsyncedData/WIFL_genome/WIFL.fa   "${array[1]}" | awk -v snp="${array[0]}" '/^>/ {printf("%s\t", snp); next} {printf("%s", $1)} END {printf("\n")}' ;  done < regions-for-candidates.txt > consensus_sequences_of_snps.txt 
+2016-12-09 06:35 /tutorials/--% (master) pwd
+/Users/eriq/Documents/git-repos/genoscapeRtools/tutorials
+
+```
+
+Then we can read those into a data frame
+```{r read-seq, message=FALSE}
+consSeq <- read_delim("consensus_sequences_of_snps.txt", delim = "\t", col_names = FALSE) %>%
+  setNames(c("CHROM", "Seq"))
+consSeq
+```
+
+### Data frame of targets
+
+These are just the SNPs that we want with the CHROM and POS.  (Where again, CHROM is the name of the SNP)
+```{r get-targets}
+targets <- final_candidates %>%
+  select(snp, POS) %>%
+  rename(CHROM = snp) %>%
+  mutate(truePOS = POS,
+         snppos = as.integer(str_replace(CHROM, "^.*--", ""))) %>%
+  mutate(POS = (truePOS - snppos) + 251) %>%
+  select(CHROM, POS)
+
+targets
+```
+
+### Running snps2assays
+
+The moment we have all been waiting for---we want to see if this is going to work or not...
+```{r snps2assays}
+library(snps2assays)
+
+yay_assays <- assayize(V = variation, targets = targets, consSeq = consSeq, allVar = FALSE)
+
+write_csv(yay_assays, path = "yay_assays.csv")
+```
+
+Once those are done, they can be spot-checked using samtools tview with a nify set of commands like
+this on hoffman:
+```{sh, eval=FALSE}
+REGION="scaffold1006|size252274:136147-136647";  \
+SNP="scaffold1006|size252274:136397"; \
+samtools view -q 42 -b -o region.bam  /u/nobackup/klohmuel/rbay/WIFL/SNP/WIFL_merged.bam  "$REGION";  \
+samtools index region.bam; \
+samtools tview -p "$SNP" region.bam /u/nobackup/klohmuel/rbay/References/WIFL/WIFL.fa
+```
+
+Though that is a huge hassle.  Instead, I used `samtools view` to pull the 500 bp around each 
+SNP out of the big merged bamfile (filtering on MAPQ>40).  I brought that to my laptop, sorted it
+and then indexed it, and then viewed them using IGV.  I mostly wanted to verify that I had the SNP
+in the right spot.  I spot checked a good handful and they all were correct.  
+
