@@ -534,6 +534,19 @@ yay_assays <- assayize(V = variation, targets = targets, consSeq = consSeq, allV
 write_csv(yay_assays, path = "yay_assays.csv")
 ```
 
+Then, Kristen wanted me to join back onto that a column or two that told us about why 
+any particular SNP was chosen (i.e. major or minor comparison, and its rank within those).
+So, I should be able to do that with a little left join.
+```{r add-assay-rank-info}
+yay_assays_with_ranks <-  candidate_snps %>%
+  ungroup() %>%
+  select(-(CHROM:rightpad)) %>%
+  rename(CHROM = snp) %>%
+  left_join(yay_assays, .) 
+
+write_csv(yay_assays_with_ranks, path = "yay_assays_with_ranks.csv")
+```
+
 Once those are done, they can be spot-checked using samtools tview with a nify set of commands like
 this on hoffman:
 ```{sh, eval=FALSE}
