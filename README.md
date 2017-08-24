@@ -1,6 +1,6 @@
 genoscapeRtools
 ================
-19 December, 2016
+24 August, 2017
 
 -   [Example running through missing data visualization](#example-running-through-missing-data-visualization)
     -   [Reading data in](#reading-data-in)
@@ -13,6 +13,8 @@ genoscapeRtools
 -   [Running admixture](#running-admixture)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+[![DOI](https://zenodo.org/badge/70952398.svg)](https://zenodo.org/badge/latestdoi/70952398)
+
 This is an R package of tools in devlopment. At the moment it consists mostly of some utilities for investigating amounts of missing data and visualizing where a good cutoff might be.
 
 Example running through missing data visualization
@@ -242,12 +244,12 @@ pca <- snpgdsPCA(genofile, autosome.only = FALSE)
 #> Working space: 175 samples, 104,997 SNPs
 #>     using 1 (CPU) core
 #> PCA: the sum of all selected genotypes (0, 1 and 2) = 29831599
-#> Mon Dec 19 15:39:37 2016    (internal increment: 4280)
+#> Thu Aug 24 15:07:35 2017    (internal increment: 4280)
 #> 
 [..................................................]  0%, ETC: ---    
 [==================================================] 100%, completed      
-#> Mon Dec 19 15:39:37 2016    Begin (eigenvalues and eigenvectors)
-#> Mon Dec 19 15:39:37 2016    Done.
+#> Thu Aug 24 15:07:36 2017    Begin (eigenvalues and eigenvectors)
+#> Thu Aug 24 15:07:36 2017    Done.
 
 # convert to a data frame
 tab <- data.frame(sample.id = pca$sample.id,
@@ -285,12 +287,12 @@ pca2 <- snpgdsPCA(wifl_clean_gds, autosome.only = FALSE)
 #> Working space: 175 samples, 104,997 SNPs
 #>     using 1 (CPU) core
 #> PCA: the sum of all selected genotypes (0, 1 and 2) = 6054341
-#> Mon Dec 19 15:39:38 2016    (internal increment: 4280)
+#> Thu Aug 24 15:07:37 2017    (internal increment: 4280)
 #> 
 [..................................................]  0%, ETC: ---    
 [==================================================] 100%, completed      
-#> Mon Dec 19 15:39:39 2016    Begin (eigenvalues and eigenvectors)
-#> Mon Dec 19 15:39:39 2016    Done.
+#> Thu Aug 24 15:07:38 2017    Begin (eigenvalues and eigenvectors)
+#> Thu Aug 24 15:07:38 2017    Done.
 
 tab2 <- data.frame(sample.id = pca2$sample.id,
     EV1 = pca2$eigenvect[,1],    # the first eigenvector

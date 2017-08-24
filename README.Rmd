@@ -16,6 +16,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+[![DOI](https://zenodo.org/badge/70952398.svg)](https://zenodo.org/badge/latestdoi/70952398)
+
 This is an R package of tools in devlopment.  At the moment it consists mostly of 
 some utilities for investigating amounts of missing data and visualizing where
 a good cutoff might be.
