@@ -14,4 +14,3 @@ mat_cumul_cpp(x, dim)
 \description{
 return a matrix of cumumlative sums along the rows or colums
 }
-

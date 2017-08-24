@@ -29,4 +29,3 @@ out of our pipeline and get catenated by \code{\link{read_012}}.  That is,
 when it sees: \code{scaffold2|size4533513--4321992} it knows that the contig
 comes before the -- and the position in bp comes after that.
 }
-

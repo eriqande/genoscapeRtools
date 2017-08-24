@@ -24,4 +24,3 @@ Uses data.table::fread for speed. Note that the individual names should be uniqu
 locus names.  The .pos file should have two columns of names (at least things are hard-wired for
 that at the moment).
 }
-

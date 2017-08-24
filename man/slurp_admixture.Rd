@@ -15,4 +15,3 @@ the allele frequencies, set this to "P"}
 \description{
 Reads it into a tidy data frame
 }
-

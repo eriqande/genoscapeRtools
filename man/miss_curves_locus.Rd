@@ -21,4 +21,3 @@ in 10 roughly equal chunks.}
 \description{
 Order a genotype matrix by locus missingness at different numbers of individuals and plot results
 }
-

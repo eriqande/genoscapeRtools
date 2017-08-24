@@ -1,6 +1,6 @@
 genoscapeRtools
 ================
-22 November, 2016
+19 December, 2016
 
 -   [Example running through missing data visualization](#example-running-through-missing-data-visualization)
     -   [Reading data in](#reading-data-in)
@@ -9,7 +9,8 @@ genoscapeRtools
     -   [Read it back in](#read-it-back-in)
 -   [Getting the full VCF of those retained indv's and positions](#getting-the-full-vcf-of-those-retained-indvs-and-positions)
 -   [Using SNPRelate](#using-snprelate)
-    -   [Read SNPRelate2 directly from 012 file](#read-snprelate2-directly-from-012-file)
+-   [Read SNPRelate2 directly from 012 file](#read-snprelate2-directly-from-012-file)
+-   [Running admixture](#running-admixture)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 This is an R package of tools in devlopment. At the moment it consists mostly of some utilities for investigating amounts of missing data and visualizing where a good cutoff might be.
@@ -35,7 +36,7 @@ There's a function for that
 wifl <- read_012(prefix = "~/Documents/UnsyncedData/WIFL_10-15-16/wifl-10-15-16", gz = TRUE)
 #> 
 Read 0.0% of 219 rows
-Read 219 rows and 349015 (of 349015) columns from 0.165 GB file in 00:00:09
+Read 219 rows and 349015 (of 349015) columns from 0.165 GB file in 00:00:06
 ```
 
 ### Doing the missing data calcs
@@ -241,12 +242,12 @@ pca <- snpgdsPCA(genofile, autosome.only = FALSE)
 #> Working space: 175 samples, 104,997 SNPs
 #>     using 1 (CPU) core
 #> PCA: the sum of all selected genotypes (0, 1 and 2) = 29831599
-#> Tue Nov 22 14:20:31 2016    (internal increment: 4400)
+#> Mon Dec 19 15:39:37 2016    (internal increment: 4280)
 #> 
 [..................................................]  0%, ETC: ---    
 [==================================================] 100%, completed      
-#> Tue Nov 22 14:20:33 2016    Begin (eigenvalues and eigenvectors)
-#> Tue Nov 22 14:20:33 2016    Done.
+#> Mon Dec 19 15:39:37 2016    Begin (eigenvalues and eigenvectors)
+#> Mon Dec 19 15:39:37 2016    Done.
 
 # convert to a data frame
 tab <- data.frame(sample.id = pca$sample.id,
@@ -260,7 +261,8 @@ plot(tab$EV2, tab$EV1, xlab="eigenvector 2", ylab="eigenvector 1")
 
 ![](readme-figs/snprelate-1.png)
 
-### Read SNPRelate2 directly from 012 file
+Read SNPRelate2 directly from 012 file
+--------------------------------------
 
 Even better, we can probably just read an 012 file directly:
 
@@ -283,12 +285,12 @@ pca2 <- snpgdsPCA(wifl_clean_gds, autosome.only = FALSE)
 #> Working space: 175 samples, 104,997 SNPs
 #>     using 1 (CPU) core
 #> PCA: the sum of all selected genotypes (0, 1 and 2) = 6054341
-#> Tue Nov 22 14:20:38 2016    (internal increment: 4400)
+#> Mon Dec 19 15:39:38 2016    (internal increment: 4280)
 #> 
 [..................................................]  0%, ETC: ---    
 [==================================================] 100%, completed      
-#> Tue Nov 22 14:20:40 2016    Begin (eigenvalues and eigenvectors)
-#> Tue Nov 22 14:20:40 2016    Done.
+#> Mon Dec 19 15:39:39 2016    Begin (eigenvalues and eigenvectors)
+#> Mon Dec 19 15:39:39 2016    Done.
 
 tab2 <- data.frame(sample.id = pca2$sample.id,
     EV1 = pca2$eigenvect[,1],    # the first eigenvector
@@ -299,7 +301,10 @@ tab2 <- data.frame(sample.id = pca2$sample.id,
 plot(tab2$EV2, tab2$EV1, xlab="eigenvector 2", ylab="eigenvector 1")
 ```
 
-![](readme-figs/snprelate-from-012-1.png) \#\# Running admixture
+![](readme-figs/snprelate-from-012-1.png)
+
+Running admixture
+-----------------
 
 These are just notes to myself. You can use the plink bed files, but you gotta change the chrom names. Might as well just change them all to 1.
 

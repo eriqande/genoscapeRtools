@@ -19,4 +19,3 @@ Returns a data frame with columns pos, n0, n1, group, ntot, and freq
 \description{
 boing.
 }
-

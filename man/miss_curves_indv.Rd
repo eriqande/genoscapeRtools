@@ -33,4 +33,3 @@ will be written to  files named like "clean_file_prefix_indvXX_posYY" where XX i
 The order of pos and inv in that file will be the same as in the x012 input (except for the pos and indv that have
 been removed, of course.) WARNING: If you positions have "--" in them, you will get some wonky results.
 }
-

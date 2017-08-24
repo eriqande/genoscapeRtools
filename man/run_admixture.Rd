@@ -25,4 +25,3 @@ you can set it to whatever...}
 \description{
 Just a wrapper to mclapply over all this.
 }
-

@@ -36,4 +36,3 @@ This returns a data frame with the columns:
 This should be run on a set of data that has not been too highly filtered---you
 want to know if there is much variation, even if it wasn't seen in everyone.
 }
-

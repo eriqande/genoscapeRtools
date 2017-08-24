@@ -561,4 +561,3 @@ Though that is a huge hassle.  Instead, I used `samtools view` to pull the 500 b
 SNP out of the big merged bamfile (filtering on MAPQ>40).  I brought that to my laptop, sorted it
 and then indexed it, and then viewed them using IGV.  I mostly wanted to verify that I had the SNP
 in the right spot.  I spot checked a good handful and they all were correct.  
-

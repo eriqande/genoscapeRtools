@@ -16,4 +16,3 @@ birds you want to include, in the order you want to include them.}
 \description{
 This just plots everything onto one page and returns it as a ggplot object.
 }
-

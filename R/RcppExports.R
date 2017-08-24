@@ -5,6 +5,6 @@
 #' @param x a numeric matrix
 #' @param dim 1 for rows, 2 for columns
 mat_cumul_cpp <- function(x, dim) {
-    .Call('genoscapeRtools_mat_cumul_cpp', PACKAGE = 'genoscapeRtools', x, dim)
+    .Call('_genoscapeRtools_mat_cumul_cpp', PACKAGE = 'genoscapeRtools', x, dim)
 }
 

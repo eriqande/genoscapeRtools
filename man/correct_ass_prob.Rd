@@ -17,4 +17,3 @@ a vector of the same length as p0 and p1
 \description{
 this is most useful for use with dplyr and mutate
 }
-
