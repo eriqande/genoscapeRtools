@@ -27,9 +27,18 @@ read_012 <- function(prefix, gz = FALSE) {
   ret <- data.table::fread(file, data.table = FALSE)[,-1] %>%
     as.matrix()
 
-  posmat <- scan(posfile, what = "character") %>%
-    matrix(ncol = 2, byrow = TRUE)
-  pos <- paste(posmat[,1], posmat[,2], sep = "--")
+
+  # when reading the pos file we have to determine if there are
+  # one or two columns
+  pos_str <- scan(posfile, what = "character")
+  if (length(pos_str) == ncol(ret)) {  # in this case we have just a single column
+    pos <- pos_str
+  } else if (length(pos_str) == 2 * ncol(ret)) {  # in this case you have two columns CHROM and POS and we paste them together
+    posmat <- matrix(pos_str, ncol = 2, byrow = TRUE)
+    pos <- paste(posmat[,1], posmat[,2], sep = "--")
+  } else {
+    stop("Seems to be incorrect number of entries in pos file")
+  }
 
   indv <- scan(indvfile, what = "character")
 
