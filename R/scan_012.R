@@ -12,11 +12,15 @@
 #' Windows, probably not.  If there are any problems, don't keep your file gzipped!
 #' @param gzpos  logical flag saying whether the pos file is gzipped.
 #' @param posfile_columns The number of columns in the .pos file.  This seems to usually be 1 or 2.
-#' Regardless, the names of the loci should be in the first column.
+#' If this is 1, then it is assumed that the locus names are unique.  If it is greater than 1, then
+#' the first two columns are catenated together with "--" to form the position names.
 #' @return Returns a matrix with n-indiv rows and n-loci columns.  The rownames are the indv names and the
 #' colnames are the pos's.
 #' @export
 scan_012 <- function(prefix, gz = FALSE, gzpos = FALSE, posfile_columns) {
+
+  stopifnot(posfile_columns > 0)
+
   if (gz == TRUE) {
     file <- paste0(prefix, ".012.gz")
   } else {
@@ -37,8 +41,14 @@ scan_012 <- function(prefix, gz = FALSE, gzpos = FALSE, posfile_columns) {
   message("Reading the position names ")
   pos_str <- matrix(scan(posfile, what = "character"),
                     ncol = posfile_columns,
-                    byrow = TRUE)[,1]
+                    byrow = TRUE)
   message("Read in ", length(pos_str), " positions.")
+  if (posfile_columns == 1) {
+    pos <- pos_str[,1]
+  } else {
+    pos <- paste0(pos_str[,1], "--", pos_str[,2])
+  }
+  message("First 10 position names are: ", paste(pos[1:10], collapse = ", "))
 
 
   # now, get the individual names
@@ -49,9 +59,9 @@ scan_012 <- function(prefix, gz = FALSE, gzpos = FALSE, posfile_columns) {
   message("Reading 012 matrix ")
   ret <- matrix(scan(file, what = integer()),
                 byrow = TRUE,
-                ncol = length(pos_str) + 1)[,-1]   # there is a extra column in the 012 file giving the index of the indv
+                ncol = length(pos) + 1)[,-1]   # there is a extra column in the 012 file giving the index of the indv
 
 
-  dimnames(ret) <- list(indv = indv, pos = pos_str)
+  dimnames(ret) <- list(indv = indv, pos = pos)
   ret
 }
