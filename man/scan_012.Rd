@@ -18,7 +18,8 @@ Windows, probably not.  If there are any problems, don't keep your file gzipped!
 \item{gzpos}{logical flag saying whether the pos file is gzipped.}
 
 \item{posfile_columns}{The number of columns in the .pos file.  This seems to usually be 1 or 2.
-Regardless, the names of the loci should be in the first column.}
+If this is 1, then it is assumed that the locus names are unique.  If it is greater than 1, then
+the first two columns are catenated together with "--" to form the position names.}
 }
 \value{
 Returns a matrix with n-indiv rows and n-loci columns.  The rownames are the indv names and the

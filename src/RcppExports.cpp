@@ -5,6 +5,20 @@
 
 using namespace Rcpp;
 
+// sample_from_angsd_probs
+IntegerMatrix sample_from_angsd_probs(NumericVector x, CharacterVector samples, CharacterVector snps, double thresh);
+RcppExport SEXP _genoscapeRtools_sample_from_angsd_probs(SEXP xSEXP, SEXP samplesSEXP, SEXP snpsSEXP, SEXP threshSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type samples(samplesSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type snps(snpsSEXP);
+    Rcpp::traits::input_parameter< double >::type thresh(threshSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_from_angsd_probs(x, samples, snps, thresh));
+    return rcpp_result_gen;
+END_RCPP
+}
 // mat_cumul_cpp
 NumericMatrix mat_cumul_cpp(NumericMatrix x, int dim);
 RcppExport SEXP _genoscapeRtools_mat_cumul_cpp(SEXP xSEXP, SEXP dimSEXP) {
@@ -19,6 +33,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_genoscapeRtools_sample_from_angsd_probs", (DL_FUNC) &_genoscapeRtools_sample_from_angsd_probs, 4},
     {"_genoscapeRtools_mat_cumul_cpp", (DL_FUNC) &_genoscapeRtools_mat_cumul_cpp, 2},
     {NULL, NULL, 0}
 };
