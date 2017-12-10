@@ -3,8 +3,7 @@
 \name{sample_from_angsd_probs}
 \alias{sample_from_angsd_probs}
 \title{Sample a genotype (0,1,2) from probabilities for all the snps and individuals
-in x.  This is a utility function.  It will get called by a higher level
-function.}
+in x.}
 \usage{
 sample_from_angsd_probs(x, samples, snps, thresh)
 }
@@ -22,6 +21,5 @@ are 0.33, 0.33, 0.33, this locus will just get a missing (-1).}
 }
 \description{
 Sample a genotype (0,1,2) from probabilities for all the snps and individuals
-in x.  This is a utility function.  It will get called by a higher level
-function.
+in x.
 }

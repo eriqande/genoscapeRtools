@@ -2,8 +2,7 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' Sample a genotype (0,1,2) from probabilities for all the snps and individuals
-#' in x.  This is a utility function.  It will get called by a higher level
-#' function.
+#' in x.
 #' @param x a numeric vector that holds the posterior probs from an
 #' ANGSD geno.gz file (from doGenos 32)
 #' @param samples character vector of sample names
