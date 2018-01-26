@@ -49,11 +49,15 @@ pairwise_fst <- function(dat012, sample_groups) {
   SNPRelate::snpgdsClose(gds_conn)
 
   # now, we clean up the output just a little
-  console <- tibble::as_tibble(matrix(fst_calc_console_output, byrow = TRUE, ncol = 6))
+  # this is a hack.  The new version of SNPrelate puts this line into the output
+  # that screws things up.  I am just going to remove it:
+  fst_calc_console_output_stripped <- fst_calc_console_output[fst_calc_console_output != "Fst estimation on genotypes:"]
+
+  console <- tibble::as_tibble(matrix(fst_calc_console_output_stripped, byrow = TRUE, ncol = 6))
 
   # and we grab the sample sizes out of it
   samp_sizes <- console %>%
-    mutate(tmp = stringr::str_replace_all(V6, "[,()]", "")) %>%
+    dplyr::mutate(tmp = stringr::str_replace_all(V6, "[,()]", "")) %>%
     dplyr::select(tmp) %>%
     dplyr::mutate(tmp = stringr::str_replace_all(tmp, "^ *", "")) %>%
     tidyr::separate(tmp, into = c("pop1", "n_pop1", "pop2", "n_pop2"), sep = " ") %>%
