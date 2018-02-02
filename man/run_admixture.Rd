@@ -14,6 +14,10 @@ in the same directory as well as the .fam file.
  These three files will both get
 copied to "input.bed" and "input.bim" in the "data" directory in the outdir}
 
+\item{Reps}{number or reps to do}
+
+\item{Kvals}{vector of K-values to use}
+
 \item{path}{the path that gets you to the directory you want to put all the results in.}
 
 \item{outdir}{the single name of the output directory you want}

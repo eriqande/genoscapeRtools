@@ -23,3 +23,7 @@ missing. These all get returned in a tidy tibble.
 \details{
 This "_1" version is intended to operate on a single chromosome.
 }
+\examples{
+dat <- scan_012("~/Documents/git-repos/omy28-investigations/wgs_play/more_big_region_wgs", gz = FALSE, posfile_columns = 2)
+colnames(dat) <- stringr::str_replace(colnames(dat), "omy28--", "")
+}

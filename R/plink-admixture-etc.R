@@ -74,8 +74,8 @@ convert_012_to_bed <- function(W, chromo_override = FALSE, prefix = "plink") {
 #' in the same directory as well as the .fam file.
 #'  These three files will both get
 #' copied to "input.bed" and "input.bim" in the "data" directory in the outdir
-#' @param Reps
-#' @param Kvals
+#' @param Reps number or reps to do
+#' @param Kvals vector of K-values to use
 #' @param path  the path that gets you to the directory you want to put all the results in.
 #' @param outdir the single name of the output directory you want
 #' @param num_cores  the number of cores to parallelize the admixture runs over.  By default it will

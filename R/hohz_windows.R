@@ -14,7 +14,7 @@
 #' window of this width, and the position of it will be reported as the center of
 #' the window. Default width is 10 Kb.
 #' @export
-#' @example
+#' @examples
 #' dat <- scan_012("~/Documents/git-repos/omy28-investigations/wgs_play/more_big_region_wgs", gz = FALSE, posfile_columns = 2)
 #' colnames(dat) <- stringr::str_replace(colnames(dat), "omy28--", "")
 hohz_windows_1 <- function(d012, width = 1e04) {

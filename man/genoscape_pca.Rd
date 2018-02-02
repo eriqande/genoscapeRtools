@@ -33,8 +33,8 @@ This function lets you say which individuals you want to drop which
 makes it easy to iteratively remove outliers.
 }
 \examples{
-Just while working on it, for testing:
-
+# Just while working on it, for testing:
+library(readr)
 dat012 <- read_012("../amke-popgen/data/rachael-amke-clean_indv175_pos110000", gz = TRUE)
 sample_groups <- read_csv("../amke-popgen/data/amke_locations_from_mikki.csv")
 samples_to_remove <- c("1833-14592", "2003-40521", "OCBPC-3", "OCBPC-4")
