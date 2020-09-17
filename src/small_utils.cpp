@@ -1,6 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+
 //' return a matrix of cumumlative sums along the rows or colums
 //' @param x a numeric matrix
 //' @param dim 1 for rows, 2 for columns

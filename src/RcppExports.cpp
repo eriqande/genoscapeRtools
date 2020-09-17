@@ -5,6 +5,19 @@
 
 using namespace Rcpp;
 
+// apwnd_window_internal
+List apwnd_window_internal(IntegerMatrix x, int a, int b);
+RcppExport SEXP _genoscapeRtools_apwnd_window_internal(SEXP xSEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type a(aSEXP);
+    Rcpp::traits::input_parameter< int >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(apwnd_window_internal(x, a, b));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_from_angsd_probs
 IntegerMatrix sample_from_angsd_probs(NumericVector x, CharacterVector samples, CharacterVector snps, double thresh);
 RcppExport SEXP _genoscapeRtools_sample_from_angsd_probs(SEXP xSEXP, SEXP samplesSEXP, SEXP snpsSEXP, SEXP threshSEXP) {
@@ -33,6 +46,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_genoscapeRtools_apwnd_window_internal", (DL_FUNC) &_genoscapeRtools_apwnd_window_internal, 3},
     {"_genoscapeRtools_sample_from_angsd_probs", (DL_FUNC) &_genoscapeRtools_sample_from_angsd_probs, 4},
     {"_genoscapeRtools_mat_cumul_cpp", (DL_FUNC) &_genoscapeRtools_mat_cumul_cpp, 2},
     {NULL, NULL, 0}

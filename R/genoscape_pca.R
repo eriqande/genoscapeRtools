@@ -115,7 +115,9 @@ genoscape_pca <- function(dat012,
     pca_pairs = pca_pairs,
     pairs_plot = pairs_plot,
     dropped_indivs = tibble::tibble(sample = droppers),
-    requested_to_drop = tibble::tibble(sample = samples_to_remove)
+    requested_to_drop = tibble::tibble(sample = samples_to_remove),
+    eigenvalues = sr_pca$eigenval,
+    proportion_variance = sr_pca$varprop
   )
 
 }
