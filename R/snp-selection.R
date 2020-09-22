@@ -34,7 +34,7 @@ compile_assayable <- function(w, minMAF = 0.03, flank = 20) {
   keepers <- frq > minMAF & frq < 1.0 - minMAF
 
   # now make a data frame of them and keep track of the scaffold and base pairs too:
-  df <- dplyr::data_frame(snp = colnames(w)[keepers],
+  df <- tibble::tibble(snp = colnames(w)[keepers],
                           num_gene_copies = gc[keepers],
                           freq = frq[keepers]) %>%
     dplyr::mutate(pos = snp) %>%
