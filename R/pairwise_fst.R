@@ -53,7 +53,7 @@ pairwise_fst <- function(dat012, sample_groups) {
   # that screws things up.  I am just going to remove it:
   fst_calc_console_output_stripped <- fst_calc_console_output[fst_calc_console_output != "Fst estimation on genotypes:"]
 
-  console <- tibble::as_tibble(matrix(fst_calc_console_output_stripped, byrow = TRUE, ncol = 6))
+  console <- tibble::as_tibble(matrix(fst_calc_console_output_stripped, byrow = TRUE, ncol = 7))
 
   # and we grab the sample sizes out of it
   samp_sizes <- console %>%
