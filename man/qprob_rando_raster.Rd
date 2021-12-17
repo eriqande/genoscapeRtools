@@ -4,9 +4,17 @@
 \alias{qprob_rando_raster}
 \title{return an RGB raster of colors to depict breeding pops on a map}
 \usage{
-qprob_rando_raster(TRB, cols, alpha = 0.7, alpha_scale = NULL,
-  scale_min_to = 0, abs_thresh = NULL, rel_thresh = NULL, alpha_exp = 1,
-  alpha_chop_max = 255)
+qprob_rando_raster(
+  TRB,
+  cols,
+  alpha = 0.7,
+  alpha_scale = NULL,
+  scale_min_to = 0,
+  abs_thresh = NULL,
+  rel_thresh = NULL,
+  alpha_exp = 1,
+  alpha_chop_max = 255
+)
 }
 \arguments{
 \item{TRB}{the raster brick that comes out of tess3Q_map_rasters.  Typically you

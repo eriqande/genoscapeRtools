@@ -81,11 +81,14 @@ convert_012_to_bed <- function(W, chromo_override = FALSE, prefix = "plink") {
 #' @param num_cores  the number of cores to parallelize the admixture runs over.  By default it will
 #' try to detect the number of cores and then use 1 less than that.  (or 1, whichever is larger). But
 #' you can set it to whatever...
+#' @param use_existing_directory If you want to place files into an existing outdir without
+#' throwing an error, set this to TRUE
+#' @param more_flags any additional flags to run admixture with
 #' @export
-run_admixture <- function(bed, Reps = 2, Kvals = 2:5, path = ".", outdir = "admixture_runs", num_cores = max(1, parallel::detectCores() - 1)) {
+run_admixture <- function(bed, Reps = 2, Kvals = 2:5, path = ".", outdir = "admixture_runs", num_cores = max(1, parallel::detectCores() - 1), use_existing_directory = FALSE, more_flags = "") {
   OUT <- file.path(path, outdir)
   DAT <- file.path(OUT, "data")
-  if(dir.exists(OUT)) stop(paste0("Directory ", OUT, " already exists! Remove it if you want to proceed"))
+  if(!use_existing_directory && dir.exists(OUT)) stop(paste0("Directory ", OUT, " already exists! Remove it if you want to proceed"))
 
   dir.create(OUT, recursive = TRUE)  # create the output directory
   dir.create(DAT)
@@ -106,7 +109,7 @@ run_admixture <- function(bed, Reps = 2, Kvals = 2:5, path = ".", outdir = "admi
 
   # run admixture with a different seed each time
   parallel::mclapply(1:nrow(dirs), function(i) {
-    system(paste0("cd ", dirs[i, 1], "; admixture  -s ", i * 1234, " ../data/input.bed ", dirs[i, 3], " > admixture.stdout 2> admixture.stderr "))
+    system(paste0("cd ", dirs[i, 1], "; admixture ",  more_flags  ," -s ", i * 1234, " ../data/input.bed ", dirs[i, 3], " > admixture.stdout 2> admixture.stderr "))
   }, mc.cores = num_cores
   )
 

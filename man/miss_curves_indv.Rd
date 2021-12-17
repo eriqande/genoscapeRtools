@@ -4,9 +4,14 @@
 \alias{miss_curves_indv}
 \title{Order a genotype matrix by individual missingness at different locus numbers and plot results}
 \usage{
-miss_curves_indv(x012, reorder = TRUE, loc_nums = integer(0),
-  clean_pos = integer(0), clean_indv = integer(0),
-  clean_file_prefix = "cleaned")
+miss_curves_indv(
+  x012,
+  reorder = TRUE,
+  loc_nums = integer(0),
+  clean_pos = integer(0),
+  clean_indv = integer(0),
+  clean_file_prefix = "cleaned"
+)
 }
 \arguments{
 \item{x012}{a matrix of 012 genotypes with missing data coded as -1}

@@ -3,10 +3,5 @@
 \docType{package}
 \name{genoscapeRtools}
 \alias{genoscapeRtools}
-\alias{genoscapeRtools-package}
 \title{My package documentation
 … bla bla …}
-\description{
-My package documentation
-… bla bla …
-}

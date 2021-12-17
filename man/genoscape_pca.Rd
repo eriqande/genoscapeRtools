@@ -4,8 +4,13 @@
 \alias{genoscape_pca}
 \title{do a PCA using SNPRelate and prepare output for rapid plotting}
 \usage{
-genoscape_pca(dat012, samples_to_remove = character(0), num_pcs = 6,
-  sample_groups = NULL, plot_facet_free = FALSE)
+genoscape_pca(
+  dat012,
+  samples_to_remove = character(0),
+  num_pcs = 6,
+  sample_groups = NULL,
+  plot_facet_free = FALSE
+)
 }
 \arguments{
 \item{dat012}{an 012 matrix like that you get from read_012.

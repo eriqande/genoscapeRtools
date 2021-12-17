@@ -4,8 +4,12 @@
 \alias{miss_curves_locus}
 \title{Order a genotype matrix by locus missingness at different numbers of individuals and plot results}
 \usage{
-miss_curves_locus(x012, reorder = TRUE, locus_thin_to = 5000,
-  indv_nums = integer(0))
+miss_curves_locus(
+  x012,
+  reorder = TRUE,
+  locus_thin_to = 5000,
+  indv_nums = integer(0)
+)
 }
 \arguments{
 \item{x012}{a matrix of 012 genotypes with missing data coded as -1}
